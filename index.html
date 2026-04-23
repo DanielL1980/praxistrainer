@@ -12,63 +12,111 @@
   --ink:#1a1c1e;--ink2:#2c2f33;--ink3:#3d4147;
   --ch:#f0ece4;--ch2:#e4dfd5;--bo:#c8c3b8;
   --red:#c8401a;--blue:#1a6fc8;--gold:#b8941a;--gr:#2a7a3a;
-  --mu:#6b7280;--pa:#f7f3ec;
+  --mu:#6b7280;--pa:#f7f3ec;--amber:#f59e0b;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-
-/* ROOT HEIGHT CHAIN - must be unbroken for #map to get height */
 html{height:100%;overflow:hidden}
 body{height:100%;overflow:hidden;display:flex;flex-direction:column;font-family:'Rajdhani',sans-serif;background:var(--ch)}
 
-/* HEADER */
-header{flex-shrink:0;height:50px;background:var(--ink);display:flex;align-items:center;padding:0 12px;gap:10px;border-bottom:3px solid var(--red)}
-.logo{font-size:1.1rem;font-weight:700;color:var(--ch);letter-spacing:.09em;display:flex;align-items:center;gap:7px}
-.ldot{width:7px;height:7px;background:var(--red);border-radius:50%}
-.lsub{font-weight:400;font-size:.75rem;color:#5a6070}
-.hpills{margin-left:auto;display:flex;gap:4px}
+/* ═══════════ SCREENS ═══════════ */
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+.screen.active{display:flex}
+
+/* ═══════════ SHARED HEADER ═══════════ */
+.hdr{flex-shrink:0;height:50px;background:var(--ink);display:flex;align-items:center;padding:0 14px;gap:10px;border-bottom:3px solid var(--red)}
+.hdr-logo{font-size:1.1rem;font-weight:700;color:var(--ch);letter-spacing:.09em;display:flex;align-items:center;gap:7px}
+.hdr-dot{width:7px;height:7px;background:var(--red);border-radius:50%}
+.hdr-sub{font-weight:400;font-size:.75rem;color:#5a6070}
+.hdr-back{padding:4px 10px;background:none;border:1px solid var(--ink3);border-radius:3px;color:#8a9090;font-family:'Rajdhani',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;touch-action:manipulation}
+.hdr-back:hover{border-color:var(--ch);color:var(--ch)}
+.hdr-right{margin-left:auto;display:flex;gap:6px;align-items:center}
 .hpill{font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 6px;border-radius:2px;background:var(--ink2);border:1px solid var(--ink3);color:#5a6070}
 .hpill.on{border-color:var(--gr);color:#4ade80}
 
-/* PORTRAIT TABS */
+/* ═══════════ START SCREEN ═══════════ */
+#screen-start{background:var(--ink);justify-content:center;align-items:center;gap:0}
+.start-logo{text-align:center;margin-bottom:48px}
+.start-logo h1{font-size:2.4rem;font-weight:700;color:var(--ch);letter-spacing:.12em;line-height:1}
+.start-logo p{font-size:.85rem;color:#5a6070;letter-spacing:.06em;margin-top:8px}
+.start-logo .dot{display:inline-block;width:10px;height:10px;background:var(--red);border-radius:50%;margin-right:10px;vertical-align:middle}
+.start-cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;padding:0 20px}
+.start-card{width:200px;background:var(--ink2);border:1px solid var(--ink3);border-radius:10px;padding:28px 20px;cursor:pointer;transition:border-color .2s,transform .2s;text-align:center;touch-action:manipulation}
+.start-card:hover{border-color:var(--red);transform:translateY(-2px)}
+.start-card:active{transform:translateY(0)}
+.start-card .sc-icon{font-size:2.6rem;margin-bottom:12px}
+.start-card .sc-title{font-size:1.1rem;font-weight:700;color:var(--ch);letter-spacing:.06em;margin-bottom:6px}
+.start-card .sc-desc{font-size:.72rem;color:#5a6070;line-height:1.5}
+.start-card.card-trainer{border-color:rgba(200,64,26,.4)}
+.start-card.card-notes{border-color:rgba(26,111,200,.4)}
+
+/* ═══════════ DASHBOARD SCREEN ═══════════ */
+#screen-dashboard{background:var(--pa)}
+.dash-toolbar{flex-shrink:0;background:var(--ch2);border-bottom:2px solid var(--bo);padding:10px 14px;display:flex;align-items:center;gap:10px}
+.dash-title{font-size:1rem;font-weight:700;color:var(--ink);letter-spacing:.05em}
+.btn-primary{padding:7px 16px;background:var(--red);border:none;border-radius:4px;color:white;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.04em;cursor:pointer;touch-action:manipulation}
+.btn-primary:active{opacity:.85}
+.dash-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.dash-list::-webkit-scrollbar{width:4px}
+.dash-list::-webkit-scrollbar-thumb{background:var(--bo);border-radius:2px}
+.dash-empty{text-align:center;padding:40px 20px;color:var(--mu)}
+.dash-empty .de-icon{font-size:2.5rem;margin-bottom:12px}
+.dash-empty p{font-size:.85rem;line-height:1.6}
+.scenario-card{background:white;border:1px solid var(--bo);border-radius:6px;padding:12px 14px;cursor:pointer;transition:border-color .15s,box-shadow .15s;display:flex;align-items:center;gap:12px}
+.scenario-card:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.scenario-card:active{background:var(--ch2)}
+.sc-body{flex:1;min-width:0}
+.sc-name{font-size:.95rem;font-weight:700;color:var(--ink);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-meta{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--mu)}
+.sc-actions{display:flex;gap:6px;flex-shrink:0}
+.sc-btn{padding:4px 9px;background:none;border:1px solid var(--bo);border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--mu);touch-action:manipulation}
+.sc-btn:hover{border-color:var(--blue);color:var(--blue)}
+.sc-btn.del:hover{border-color:var(--red);color:var(--red)}
+
+/* ═══════════ SAVE DIALOG ═══════════ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:none;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--pa);border:1px solid var(--bo);border-radius:8px;padding:20px;width:320px;max-width:90vw}
+.modal h3{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:14px;letter-spacing:.05em}
+.modal input,.modal textarea,.modal select{width:100%;padding:7px 10px;border:1px solid var(--bo);border-radius:4px;font-family:'Rajdhani',sans-serif;font-size:.85rem;color:var(--ink);background:white;outline:none;margin-bottom:10px}
+.modal input:focus,.modal textarea:focus{border-color:var(--blue)}
+.modal textarea{min-height:60px;resize:none}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.btn-sec{padding:6px 14px;background:none;border:1px solid var(--bo);border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;color:var(--mu);cursor:pointer}
+.btn-save{padding:6px 14px;background:var(--red);border:none;border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;color:white;cursor:pointer}
+
+/* ═══════════ TRAINER SCREEN ═══════════ */
+#screen-trainer{background:var(--ch)}
+.trainer-layout{flex:1;display:flex;overflow:hidden;min-height:0}
+.pane-map{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative;border-right:2px solid var(--bo)}
+.pane-side{flex:0 0 36%;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--pa)}
+
+/* Portrait */
 .ptabs{flex-shrink:0;display:none;height:44px;background:var(--ink2);border-bottom:1px solid var(--ink3)}
 .ptabs button{flex:1;height:100%;background:none;border:none;border-bottom:3px solid transparent;color:#6b7280;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer}
 .ptabs button.on{color:var(--ch);border-bottom-color:var(--red)}
-
-/* MAIN LAYOUT - flex:1 to fill remaining body height */
-.main{flex:1;display:flex;overflow:hidden;min-height:0}
-
-/* MAP PANE - flex:1 to fill remaining main width */
-.pane-map{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative;border-right:2px solid var(--bo)}
-
-/* SIDEBAR */
-.pane-side{flex:0 0 36%;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--pa)}
-
 @media(orientation:portrait){
   .ptabs{display:flex}
-
-/* PORTRAIT OVERRIDES - after base rules so they win */
-
-  .main{position:relative}
   .pane-map,.pane-side{position:absolute;inset:0;border-right:none}
+  .trainer-layout{position:relative}
   .gone{display:none!important}
 }
 
-/* TOOLBAR - flex-shrink:0 critical so it doesn't grow into map space */
-.tb{flex-shrink:0;background:var(--ink2);border-bottom:1px solid var(--ink3);padding:5px 9px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;overflow-x:auto;max-height:80px}
-.tbl{font-size:.6rem;font-weight:700;color:#4a5260;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+/* TOOLBAR */
+.tb{flex-shrink:0;background:var(--ink2);border-bottom:1px solid var(--ink3);padding:5px 9px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;overflow-x:auto;max-height:76px}
+.tbl{font-size:.6rem;font-weight:700;color:#4a5260;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
 .tsep{width:1px;height:18px;background:var(--ink3);flex-shrink:0}
-.chip{display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;-webkit-user-select:none;touch-action:manipulation}
+.chip{display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;-webkit-user-select:none;touch-action:manipulation;flex-shrink:0}
 .chip:active{background:#454b58}
-.chip.on{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,.1)}
+.chip.on{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.1)}
 .chip .dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
-.csign{width:30px;height:30px;flex-shrink:0;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;touch-action:manipulation}
+.csign{width:30px;height:30px;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;touch-action:manipulation}
 .csign svg{width:20px;height:20px}
 .csign:active{background:#454b58}
 .csign[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--ch);font-size:.58rem;padding:2px 5px;border-radius:2px;white-space:nowrap;z-index:9999;pointer-events:none}
 .ltog{display:flex;border:1px solid #4a5060;border-radius:3px;overflow:hidden;flex-shrink:0}
 .ltog button{padding:4px 8px;background:var(--ink3);border:none;color:#6a7080;font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;touch-action:manipulation}
 .ltog button.on{background:var(--blue);color:white}
-.ac-wrap{position:relative;flex-shrink:0;width:180px}
+.ac-wrap{position:relative;flex-shrink:0;width:175px}
 .ac-inp{width:100%;padding:4px 22px 4px 7px;background:var(--ink);border:1px solid var(--ink3);border-radius:3px;color:var(--ch);font-size:.75rem;font-family:'Rajdhani',sans-serif;outline:none}
 .ac-inp:focus{border-color:var(--blue)}
 .ac-spin{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:11px;height:11px;border:2px solid var(--ink3);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;display:none}
@@ -78,17 +126,16 @@ header{flex-shrink:0;height:50px;background:var(--ink);display:flex;align-items:
 .ac-list.open{display:block}
 .ac-item{padding:6px 9px;font-family:'Rajdhani',sans-serif;font-size:.78rem;color:var(--ch2);cursor:pointer;border-bottom:1px solid var(--ink2)}
 .ac-item:hover,.ac-item.sel{background:var(--ink3);color:var(--ch)}
-.ac-main{font-weight:600}
-.ac-sub{font-size:.63rem;color:#4a5360}
+.ac-main{font-weight:600}.ac-sub{font-size:.63rem;color:#4a5360}
 
 /* MODE BAR */
 .modebar{flex-shrink:0;background:rgba(245,158,11,.18);border-bottom:1px solid rgba(245,158,11,.4);padding:0 10px;height:36px;display:none;align-items:center;gap:8px}
 .modebar.on{display:flex}
-.modetxt{font-size:.75rem;font-weight:700;color:#f59e0b;letter-spacing:.05em}
-.mbtn{padding:4px 11px;border-radius:3px;border:1px solid rgba(245,158,11,.5);background:none;color:#f59e0b;font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;touch-action:manipulation}
-.mbtn.go{background:#16a34a;border-color:#16a34a;color:white}
+.modetxt{font-size:.75rem;font-weight:700;color:var(--amber);letter-spacing:.05em;white-space:nowrap}
+.mbtn{padding:4px 11px;border-radius:3px;border:1px solid rgba(245,158,11,.5);background:none;color:var(--amber);font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+.mbtn.go{background:var(--gr);border-color:var(--gr);color:white}
 
-/* MAP - flex:1 fills remaining column space, height must NOT be 0 */
+/* MAP */
 #map{flex:1;min-height:0;z-index:1;cursor:default}
 
 /* COORD BAR */
@@ -116,17 +163,18 @@ header{flex-shrink:0;height:50px;background:var(--ink);display:flex;align-items:
 .sm:hover .smdel{display:flex}
 
 /* DRIVE PANEL */
-.dv-panel{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--ink);border:1px solid var(--gold);border-radius:6px;padding:10px 14px;z-index:2000;display:none;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+.dv-panel{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--ink);border:1px solid var(--gold);border-radius:6px;padding:10px 14px;z-index:2000;display:none;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.6)}
 .dv-panel.on{display:block}
 .dv-title{font-size:.8rem;font-weight:700;color:var(--gold);letter-spacing:.05em;margin-bottom:8px}
 .dv-list{display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto}
 .dv-item{padding:6px 10px;background:var(--ink2);border:1px solid var(--ink3);border-radius:3px;color:var(--ch);font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:8px;touch-action:manipulation}
+.dv-item:hover{border-color:var(--gold)}
 .dv-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
-.dv-cancel{margin-top:8px;width:100%;padding:5px;background:none;border:1px solid #4a5060;border-radius:3px;color:var(--mu);font-family:'Rajdhani',sans-serif;font-size:.75rem;cursor:pointer}
+.dv-cancel{margin-top:8px;width:100%;padding:5px;background:none;border:1px solid #4a5060;border-radius:3px;color:var(--mu);font-family:'Rajdhani',sans-serif;font-size:.75rem;cursor:pointer;touch-action:manipulation}
 
-/* SIDEBAR TABS */
+/* SIDEBAR */
 .stabs{flex-shrink:0;display:flex;background:var(--ch2);border-bottom:2px solid var(--bo)}
-.stab{flex:1;padding:8px 0;background:none;border:none;border-bottom:3px solid transparent;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;color:var(--mu);cursor:pointer;letter-spacing:.04em}
+.stab{flex:1;padding:8px 0;background:none;border:none;border-bottom:3px solid transparent;font-family:'Rajdhani',sans-serif;font-size:.78rem;font-weight:600;color:var(--mu);cursor:pointer;letter-spacing:.04em;touch-action:manipulation}
 .stab.on{color:var(--ink);border-bottom-color:var(--blue)}
 .spanel{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0}
 .spanel.on{display:flex}
@@ -137,192 +185,219 @@ header{flex-shrink:0;height:50px;background:var(--ink);display:flex;align-items:
 .sv-hdr{background:var(--ink);padding:6px 11px;font-size:.78rem;font-weight:600;color:var(--ch2);letter-spacing:.05em}
 .sv-body{padding:9px 11px;font-size:.75rem;line-height:1.55;color:var(--mu)}
 .sv-coords{font-family:'Share Tech Mono',monospace;font-size:.72rem;background:var(--ch2);border:1px solid var(--bo);border-radius:3px;padding:6px 9px;color:var(--ink)}
-.sv-btn{display:block;width:100%;padding:10px;background:var(--ink);border:none;border-radius:5px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.06em;cursor:pointer;text-align:center}
+.sv-btn{display:block;width:100%;padding:10px;background:var(--ink);border:none;border-radius:5px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.06em;cursor:pointer;text-align:center;touch-action:manipulation}
 .sv-btn:disabled{background:var(--ch2);color:var(--mu);cursor:default}
 .sv-tip{font-size:.7rem;color:var(--mu);font-style:italic;line-height:1.5;border-left:3px solid var(--bo);padding-left:8px}
 
-/* NOTES */
-.ntb{flex-shrink:0;padding:6px 8px;background:var(--ch2);border-bottom:1px solid var(--bo);display:flex;gap:5px;flex-wrap:wrap}
-.fb{padding:3px 8px;background:white;border:1px solid var(--bo);border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:600;color:var(--mu);cursor:pointer;touch-action:manipulation}
+/* SCENARIO NOTES (in sidebar) */
+.scnotes-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.scnotes-hdr{flex-shrink:0;padding:8px 10px;background:var(--ch2);border-bottom:1px solid var(--bo);font-size:.78rem;font-weight:700;color:var(--ink);letter-spacing:.04em}
+.scnotes-list{flex:1;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:5px}
+.scnotes-compose{flex-shrink:0;padding:7px;background:var(--ch2);border-top:2px solid var(--bo);display:flex;gap:6px}
+.scnote-inp{flex:1;padding:5px 8px;border:1px solid var(--bo);border-radius:3px;background:white;font-family:'Rajdhani',sans-serif;font-size:.8rem;color:var(--ink);outline:none}
+.scnote-inp:focus{border-color:var(--blue)}
+.scnote-add{padding:5px 12px;background:var(--ink);border:none;border-radius:3px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;touch-action:manipulation}
+.scnote-card{background:white;border:1px solid var(--bo);border-left:3px solid var(--blue);border-radius:0 4px 4px 0;padding:6px 8px;font-size:.75rem;line-height:1.5;position:relative;color:var(--ink)}
+.scnote-del{position:absolute;top:4px;right:6px;background:none;border:none;color:var(--bo);font-size:.75rem;cursor:pointer}
+.scnote-del:hover{color:var(--red)}
+.scnote-ts{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--mu);margin-bottom:2px}
+
+/* ═══════════ GLOBAL NOTES SCREEN ═══════════ */
+#screen-notes{background:var(--pa)}
+.notes-layout{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.ntb{flex-shrink:0;padding:8px 10px;background:var(--ch2);border-bottom:1px solid var(--bo);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.fb{padding:4px 10px;background:white;border:1px solid var(--bo);border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;color:var(--mu);cursor:pointer;touch-action:manipulation}
 .fb.on{border-color:var(--blue);color:var(--blue)}
-.nlist{flex:1;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:5px}
-.ncard{background:white;border:1px solid var(--bo);border-left:4px solid var(--blue);border-radius:0 4px 4px 0;padding:6px 8px;font-size:.75rem;line-height:1.5;position:relative}
+.nlist{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.nlist::-webkit-scrollbar{width:4px}
+.nlist::-webkit-scrollbar-thumb{background:var(--bo);border-radius:2px}
+.ncard{background:white;border:1px solid var(--bo);border-left:4px solid var(--blue);border-radius:0 5px 5px 0;padding:8px 10px;font-size:.8rem;line-height:1.5;position:relative}
 .ncard.ph{border-left-color:var(--red)}.ncard.pm{border-left-color:var(--gold)}.ncard.pi{border-left-color:var(--gr)}
-.nmeta{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--mu);display:flex;align-items:center;gap:6px;margin-bottom:3px}
-.nbadge{padding:1px 4px;border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:.58rem;font-weight:700;text-transform:uppercase}
+.nmeta{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--mu);display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.nbadge{padding:1px 5px;border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:.62rem;font-weight:700;text-transform:uppercase}
 .nbh{background:#fee2e2;color:var(--red)}.nbm{background:#fef9c3;color:#8a6800}.nbi{background:#dcfce7;color:var(--gr)}.nba{background:#dbeafe;color:var(--blue)}
-.ndel{position:absolute;top:4px;right:6px;background:none;border:none;color:var(--bo);font-size:.75rem;cursor:pointer}
+.ndel{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--bo);font-size:.8rem;cursor:pointer}
 .ndel:hover{color:var(--red)}
-.ncompose{flex-shrink:0;border-top:2px solid var(--bo);padding:7px;background:var(--ch2);display:flex;flex-direction:column;gap:5px}
-textarea.nta{width:100%;min-height:48px;resize:none;padding:5px 7px;background:white;border:1px solid var(--bo);border-radius:3px;outline:none;font-family:'Rajdhani',sans-serif;font-size:.77rem;line-height:1.5;color:var(--ink)}
+.ncompose{flex-shrink:0;border-top:2px solid var(--bo);padding:10px;background:var(--ch2);display:flex;flex-direction:column;gap:6px}
+textarea.nta{width:100%;min-height:56px;resize:none;padding:7px 9px;background:white;border:1px solid var(--bo);border-radius:4px;outline:none;font-family:'Rajdhani',sans-serif;font-size:.82rem;line-height:1.5;color:var(--ink)}
 textarea.nta:focus{border-color:var(--blue)}
-.nrow{display:flex;gap:5px}
-select.nprio{flex:1;padding:5px 6px;background:white;border:1px solid var(--bo);border-radius:3px;font-size:.75rem;outline:none}
-.nadd{padding:5px 12px;background:var(--ink);border:none;border-radius:3px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;touch-action:manipulation}
+.nrow{display:flex;gap:6px}
+select.nprio{flex:1;padding:6px 7px;background:white;border:1px solid var(--bo);border-radius:3px;font-size:.8rem;outline:none;font-family:'Rajdhani',sans-serif}
+.nadd{padding:6px 16px;background:var(--ink);border:none;border-radius:3px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;touch-action:manipulation}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo"><div class="ldot"></div>PRAXISTRAINER<span class="lsub">KFAz Potsdam</span></div>
-  <div class="hpills">
-    <span class="hpill on" id="hp-veh">0 Fz</span>
-    <span class="hpill" id="hp-notes">0 Notizen</span>
-    <span class="hpill" id="hp-layer">OSM</span>
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="start-logo">
+    <h1><span class="dot"></span>PRAXISTRAINER</h1>
+    <p>KFAz Potsdam · Kraftfahrausbildung</p>
   </div>
-</header>
-
-<div class="ptabs" id="ptabs">
-  <button class="on" onclick="ptab('map',this)">🗺 Karte</button>
-  <button onclick="ptab('side',this)">📋 Infos</button>
-</div>
-
-<div class="main">
-
-<!-- MAP PANE -->
-<div class="pane-map" id="pane-map">
-
-  <div class="tb">
-    <span class="tbl">Fz:</span>
-    <div class="chip" id="chip-PKW" onclick="startPlace('PKW')"><div class="dot" style="background:#2563eb"></div>PKW</div>
-    <div class="chip" id="chip-LKW" onclick="startPlace('LKW')"><div class="dot" style="background:#dc2626"></div>LKW</div>
-    <div class="chip" id="chip-Zug" onclick="startPlace('Zug')"><div class="dot" style="background:#ea580c"></div>Zug</div>
-    <div class="chip" id="chip-Krad" onclick="startPlace('Krad')"><div class="dot" style="background:#ca8a04"></div>Krad</div>
-    <div class="chip" id="chip-Rad" onclick="startPlace('Rad')"><div class="dot" style="background:#16a34a"></div>Rad</div>
-    <div class="chip" id="chip-Bus" onclick="startPlace('Bus')"><div class="dot" style="background:#7c3aed"></div>Bus</div>
-    <div class="chip" id="chip-Fuss" onclick="startPlace('Fuss')"><div class="dot" style="background:#6b7280"></div>Fußg.</div>
-
-    <div class="tsep"></div>
-    <span class="tbl">VZ:</span>
-
-    <!-- VZ 205: umgekehrtes Dreieck, rot, innen weiß -->
-    <div class="csign" onclick="startSign('205')" data-tip="205 – Vorfahrt gewähren">
-      <svg viewBox="0 0 40 36"><polygon points="20,34 1,3 39,3" fill="white" stroke="#cc0000" stroke-width="5" stroke-linejoin="round"/></svg>
+  <div class="start-cards">
+    <div class="start-card card-trainer" onclick="showDashboard()">
+      <div class="sc-icon">🗺</div>
+      <div class="sc-title">PRAXISTRAINER</div>
+      <div class="sc-desc">Kreuzungen simulieren, Fahrwege zeichnen, Verkehrszeichen setzen</div>
     </div>
-    <!-- VZ 206: STOP -->
-    <div class="csign" onclick="startSign('206')" data-tip="206 – STOP">
-      <svg viewBox="0 0 40 40"><polygon points="13,2 27,2 38,13 38,27 27,38 13,38 2,27 2,13" fill="#cc0000" stroke="white" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="9.5" font-weight="bold" fill="white" font-family="Arial">STOP</text></svg>
+    <div class="start-card card-notes" onclick="showNotes()">
+      <div class="sc-icon">📋</div>
+      <div class="sc-title">NOTIZEN</div>
+      <div class="sc-desc">Beobachtungen, Fehler und Aufgabenstellungen erfassen</div>
     </div>
-    <!-- VZ 301: weißes Dreieck, roter Rand, Kreuzungspiktogramm -->
-    <div class="csign" onclick="startSign('301')" data-tip="301 – Vorfahrt">
-      <svg viewBox="0 0 44 40"><polygon points="22,2 42,38 2,38" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><rect x="20" y="14" width="4" height="18" fill="#222"/><rect x="11" y="25" width="8" height="3.5" fill="#222"/><rect x="25" y="25" width="8" height="3.5" fill="#222"/><polygon points="22,11 19.5,16 24.5,16" fill="#222"/></svg>
-    </div>
-    <!-- VZ 306: Vorfahrtstraße -->
-    <div class="csign" onclick="startSign('306')" data-tip="306 – Vorfahrtstraße">
-      <svg viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="white" stroke="#444" stroke-width="2" transform="rotate(45 20 20)"/><rect x="9" y="9" width="22" height="22" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/></svg>
-    </div>
-    <!-- VZ 306 abknickend -->
-    <div class="csign" onclick="startSign('306k')" data-tip="306 + abknickende Vorfahrt">
-      <svg viewBox="0 0 40 40"><rect x="1" y="1" width="38" height="38" rx="4" fill="white" stroke="#444" stroke-width="2"/><path d="M20,37 L20,20 Q20,11 13,7" stroke="#222" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="21" y="19" width="14" height="4.5" fill="#222" rx="1.5"/><line x1="13" y1="7" x2="8.5" y2="2" stroke="#222" stroke-width="5.5" stroke-linecap="round"/></svg>
-    </div>
-    <!-- VZ 307: Ende Vorfahrtstraße -->
-    <div class="csign" onclick="startSign('307')" data-tip="307 – Ende Vorfahrtstraße">
-      <svg viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="white" stroke="#444" stroke-width="2" transform="rotate(45 20 20)"/><rect x="9" y="9" width="22" height="22" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/><line x1="7" y1="7" x2="33" y2="33" stroke="#666" stroke-width="3" stroke-linecap="round"/></svg>
-    </div>
-    <!-- VZ 101: Gefahrstelle -->
-    <div class="csign" onclick="startSign('101')" data-tip="101 – Gefahrstelle">
-      <svg viewBox="0 0 40 36"><polygon points="20,2 38,34 2,34" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><text x="20" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#cc0000" font-family="serif">!</text></svg>
-    </div>
-    <!-- VZ 209: Fahrtrichtung rechts -->
-    <div class="csign" onclick="startSign('209')" data-tip="209 – Fahrtrichtung rechts">
-      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M13,20 L21,11 L21,17 L28,17 L28,23 L21,23 L21,29 Z" fill="white"/></svg>
-    </div>
-    <!-- VZ 215: Kreisverkehr -->
-    <div class="csign" onclick="startSign('215')" data-tip="215 – Kreisverkehr">
-      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M20,9 A11,11 0 1,1 9,20" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/><polygon points="20,6 14,13 26,13" fill="white"/></svg>
-    </div>
-    <!-- VZ 250: Verbot -->
-    <div class="csign" onclick="startSign('250')" data-tip="250 – Verbot für Kfz">
-      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="white" stroke="#cc0000" stroke-width="4.5"/><rect x="9" y="17" width="22" height="6" rx="2" fill="#cc0000"/></svg>
-    </div>
-
-    <div class="tsep"></div>
-
-    <!-- DRAW PATH BUTTON -->
-    <div class="chip" id="chip-draw" onclick="startDrawMode()">✏ Fahrweg</div>
-
-    <div class="tsep"></div>
-
-    <div class="ltog">
-      <button class="on" id="lb-osm" onclick="setLayer('osm')">Karte</button>
-      <button id="lb-sat" onclick="setLayer('sat')">Satellit</button>
-    </div>
-
-    <div class="chip" onclick="clearAll()" style="border-color:#6b3030;color:#b08080;margin-left:2px">Leeren</div>
-
-    <div class="ac-wrap">
-      <input class="ac-inp" id="ac-inp" placeholder="Adresse / Kreuzung…" autocomplete="off"
-        oninput="acInput()" onkeydown="acKey(event)">
-      <div class="ac-spin" id="ac-spin"></div>
-      <ul class="ac-list" id="ac-list"></ul>
-    </div>
-  </div>
-
-  <!-- MODE BAR -->
-  <div class="modebar" id="modebar">
-    <span class="modetxt" id="modetxt">MODUS</span>
-    <div id="mbtn-wrap" style="margin-left:auto;display:flex;gap:6px"></div>
-  </div>
-
-  <div id="map"></div>
-
-
-  <!-- VEHICLE SELECT PANEL for drive -->
-  <div class="dv-panel" id="dv-panel">
-    <div class="dv-title">FAHRZEUG WÄHLEN → fährt Weg ab</div>
-    <div class="dv-list" id="dv-list"></div>
-    <button class="dv-cancel" onclick="closeDvPanel()">Abbrechen</button>
-  </div>
-
-  <div class="cbar">
-    <span class="ctxt">PIN: <span id="pin-disp">–</span></span>
-    <span class="ctxt">Z: <span id="zoom-disp">–</span></span>
-    <button class="svbtn" id="sv-btn" onclick="openSV()" disabled>📸 StreetView</button>
   </div>
 </div>
 
-<!-- SIDEBAR -->
-<div class="pane-side" id="pane-side">
-  <div class="stabs">
-    <button class="stab on" onclick="stab('sv',this)">📸 StreetView</button>
-    <button class="stab" onclick="stab('notes',this)">📋 Notizen</button>
+<!-- ═══════════ DASHBOARD SCREEN ═══════════ -->
+<div id="screen-dashboard" class="screen">
+  <div class="hdr">
+    <div class="hdr-logo"><div class="hdr-dot"></div>PRAXISTRAINER<span class="hdr-sub">Szenarien</span></div>
+    <div class="hdr-right">
+      <button class="hdr-back" onclick="showStart()">← Startseite</button>
+    </div>
+  </div>
+  <div class="dash-toolbar">
+    <span class="dash-title">Meine Kreuzungen</span>
+    <button class="btn-primary" onclick="newScenario()" style="margin-left:auto">+ Neue Kreuzung</button>
+  </div>
+  <div class="dash-list" id="dash-list"></div>
+</div>
+
+<!-- ═══════════ TRAINER SCREEN ═══════════ -->
+<div id="screen-trainer" class="screen">
+  <div class="hdr">
+    <div class="hdr-logo"><div class="hdr-dot"></div>PRAXISTRAINER<span class="hdr-sub" id="trainer-title">Neue Kreuzung</span></div>
+    <div class="hdr-right">
+      <span class="hpill on" id="hp-veh">0 Fz</span>
+      <span class="hpill" id="hp-layer">OSM</span>
+      <button class="hdr-back" onclick="saveScenarioPrompt()" style="border-color:var(--amber);color:var(--amber)">💾 Speichern</button>
+      <button class="hdr-back" onclick="showDashboard()">← Zurück</button>
+    </div>
   </div>
 
-  <div class="spanel on" id="sp-sv">
-    <div class="sv-wrap">
-      <div class="sv-card">
-        <div class="sv-hdr">STANDORT – PIN</div>
-        <div class="sv-body"><div class="sv-coords" id="sv-coords">Noch kein Pin gesetzt.<br>Karte antippen → Pin setzen.</div></div>
+  <div class="ptabs" id="ptabs">
+    <button class="on" onclick="ptab('map',this)">🗺 Karte</button>
+    <button onclick="ptab('side',this)">📋 Notizen</button>
+  </div>
+
+  <div class="trainer-layout">
+    <div class="pane-map" id="pane-map">
+      <div class="tb">
+        <span class="tbl">Fz:</span>
+        <div class="chip" id="chip-PKW" onclick="startPlace('PKW')"><div class="dot" style="background:#2563eb"></div>PKW</div>
+        <div class="chip" id="chip-LKW" onclick="startPlace('LKW')"><div class="dot" style="background:#dc2626"></div>LKW</div>
+        <div class="chip" id="chip-Zug" onclick="startPlace('Zug')"><div class="dot" style="background:#ea580c"></div>Zug</div>
+        <div class="chip" id="chip-Krad" onclick="startPlace('Krad')"><div class="dot" style="background:#ca8a04"></div>Krad</div>
+        <div class="chip" id="chip-Rad" onclick="startPlace('Rad')"><div class="dot" style="background:#16a34a"></div>Rad</div>
+        <div class="chip" id="chip-Bus" onclick="startPlace('Bus')"><div class="dot" style="background:#7c3aed"></div>Bus</div>
+        <div class="chip" id="chip-Fuss" onclick="startPlace('Fuss')"><div class="dot" style="background:#6b7280"></div>Fußg.</div>
+        <div class="tsep"></div>
+        <span class="tbl">VZ:</span>
+        <div class="csign" onclick="startSign('205')" data-tip="205 – Vorfahrt gewähren"><svg viewBox="0 0 40 36"><polygon points="20,34 1,3 39,3" fill="white" stroke="#cc0000" stroke-width="5" stroke-linejoin="round"/></svg></div>
+        <div class="csign" onclick="startSign('206')" data-tip="206 – STOP"><svg viewBox="0 0 40 40"><polygon points="13,2 27,2 38,13 38,27 27,38 13,38 2,27 2,13" fill="#cc0000" stroke="white" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="9.5" font-weight="bold" fill="white" font-family="Arial">STOP</text></svg></div>
+        <div class="csign" onclick="startSign('301')" data-tip="301 – Vorfahrt"><svg viewBox="0 0 44 40"><polygon points="22,2 42,38 2,38" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><rect x="20" y="14" width="4" height="18" fill="#222"/><rect x="11" y="25" width="8" height="3.5" fill="#222"/><rect x="25" y="25" width="8" height="3.5" fill="#222"/><polygon points="22,11 19.5,16 24.5,16" fill="#222"/></svg></div>
+        <div class="csign" onclick="startSign('306')" data-tip="306 – Vorfahrtstraße"><svg viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="white" stroke="#444" stroke-width="2" transform="rotate(45 20 20)"/><rect x="9" y="9" width="22" height="22" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/></svg></div>
+        <div class="csign" onclick="startSign('306k')" data-tip="306 + abknickend"><svg viewBox="0 0 40 40"><rect x="1" y="1" width="38" height="38" rx="4" fill="white" stroke="#444" stroke-width="2"/><path d="M20,37 L20,20 Q20,11 13,7" stroke="#222" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="21" y="19" width="14" height="4.5" fill="#222" rx="1.5"/><line x1="13" y1="7" x2="8.5" y2="2" stroke="#222" stroke-width="5.5" stroke-linecap="round"/></svg></div>
+        <div class="csign" onclick="startSign('307')" data-tip="307 – Ende Vorfahrtstraße"><svg viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="white" stroke="#444" stroke-width="2" transform="rotate(45 20 20)"/><rect x="9" y="9" width="22" height="22" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/><line x1="7" y1="7" x2="33" y2="33" stroke="#666" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <div class="csign" onclick="startSign('101')" data-tip="101 – Gefahrstelle"><svg viewBox="0 0 40 36"><polygon points="20,2 38,34 2,34" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><text x="20" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#cc0000" font-family="serif">!</text></svg></div>
+        <div class="csign" onclick="startSign('209')" data-tip="209 – Fahrtrichtung rechts"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M13,20 L21,11 L21,17 L28,17 L28,23 L21,23 L21,29 Z" fill="white"/></svg></div>
+        <div class="csign" onclick="startSign('215')" data-tip="215 – Kreisverkehr"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M20,9 A11,11 0 1,1 9,20" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/><polygon points="20,6 14,13 26,13" fill="white"/></svg></div>
+        <div class="csign" onclick="startSign('250')" data-tip="250 – Verbot für Kfz"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="white" stroke="#cc0000" stroke-width="4.5"/><rect x="9" y="17" width="22" height="6" rx="2" fill="#cc0000"/></svg></div>
+        <div class="tsep"></div>
+        <div class="chip" id="chip-draw" onclick="startDrawMode()">✏ Fahrweg</div>
+        <div class="tsep"></div>
+        <div class="ltog">
+          <button class="on" id="lb-osm" onclick="setLayer('osm')">Karte</button>
+          <button id="lb-sat" onclick="setLayer('sat')">Satellit</button>
+        </div>
+        <div class="chip" onclick="clearAll()" style="border-color:#6b3030;color:#b08080">Leeren</div>
+        <div class="ac-wrap">
+          <input class="ac-inp" id="ac-inp" placeholder="Adresse suchen…" autocomplete="off" oninput="acInput()" onkeydown="acKey(event)">
+          <div class="ac-spin" id="ac-spin"></div>
+          <ul class="ac-list" id="ac-list"></ul>
+        </div>
       </div>
-      <button class="sv-btn" id="sv-open" onclick="openSV()" disabled>📸 In Google StreetView öffnen →</button>
-      <div class="sv-tip">Pin auf Kreuzung setzen → StreetView öffnet exakt diesen Standort in Google Maps.</div>
-      <div class="sv-card">
-        <div class="sv-hdr">BEDIENUNG</div>
-        <div class="sv-body">
-          <b>Fahrzeug/VZ platzieren:</b> Chip antippen → Karte antippen<br>
-          <b>Verschieben:</b> Marker ziehen<br>
-          <b>Drehen:</b> ↻ antippen (45°-Schritte)<br>
-          <b>Fahrweg:</b> ✏ Fahrweg → Weg zeichnen → Fahrzeug wählen → fährt ab<br>
-          <b>LKW-Zug:</b> Zugmaschine ziehen → Anhänger folgt<br>
-          <b>Pin setzen:</b> Leere Karte antippen<br>
-          <b>Löschen:</b> ✕ beim Hover/Tap
+
+      <div class="modebar" id="modebar">
+        <span class="modetxt" id="modetxt">MODUS</span>
+        <div id="mbtn-wrap" style="margin-left:auto;display:flex;gap:5px"></div>
+      </div>
+
+      <div id="map"></div>
+
+      <div class="dv-panel" id="dv-panel">
+        <div class="dv-title">FAHRZEUG WÄHLEN</div>
+        <div class="dv-list" id="dv-list"></div>
+        <button class="dv-cancel" onclick="closeDvPanel()">Abbrechen</button>
+      </div>
+
+      <div class="cbar">
+        <span class="ctxt">PIN: <span id="pin-disp">–</span></span>
+        <span class="ctxt">Z:<span id="zoom-disp">–</span></span>
+        <button class="svbtn" id="sv-btn" onclick="openSV()" disabled>📸 StreetView</button>
+      </div>
+    </div>
+
+    <div class="pane-side" id="pane-side">
+      <div class="stabs">
+        <button class="stab on" onclick="stab('sv',this)">📍 Info</button>
+        <button class="stab" onclick="stab('scnotes',this)">📋 Notizen</button>
+      </div>
+      <div class="spanel on" id="sp-sv">
+        <div class="sv-wrap">
+          <div class="sv-card">
+            <div class="sv-hdr">STANDORT</div>
+            <div class="sv-body"><div class="sv-coords" id="sv-coords">Karte antippen → Pin setzen</div></div>
+          </div>
+          <button class="sv-btn" id="sv-open" onclick="openSV()" disabled>📸 Google StreetView öffnen →</button>
+          <div class="sv-tip">Pin auf Kreuzung → StreetView öffnet diesen Standort in Google Maps.</div>
+          <div class="sv-card">
+            <div class="sv-hdr">BEDIENUNG</div>
+            <div class="sv-body">
+              <b>Platzieren:</b> Chip antippen → Karte antippen<br>
+              <b>Verschieben:</b> Marker ziehen<br>
+              <b>Drehen:</b> ↻ antippen (45°)<br>
+              <b>Fahrweg:</b> ✏ Fahrweg → zeichnen → Fahrzeug wählen<br>
+              <b>LKW-Zug:</b> Zugmaschine ziehen → Anhänger folgt<br>
+              <b>Löschen:</b> ✕ beim Hover/Tap
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="spanel" id="sp-scnotes">
+        <div class="scnotes-wrap">
+          <div class="scnotes-hdr">SZENARIO-NOTIZEN</div>
+          <div class="scnotes-list" id="scnotes-list"></div>
+          <div class="scnotes-compose">
+            <input class="scnote-inp" id="scnote-inp" placeholder="Notiz zur Kreuzung…" onkeydown="if(event.key==='Enter')addScNote()">
+            <button class="scnote-add" onclick="addScNote()">+</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="spanel" id="sp-notes">
+<!-- ═══════════ NOTES SCREEN ═══════════ -->
+<div id="screen-notes" class="screen">
+  <div class="hdr">
+    <div class="hdr-logo"><div class="hdr-dot"></div>NOTIZEN<span class="hdr-sub">KFAz Potsdam</span></div>
+    <div class="hdr-right">
+      <button class="hdr-back" onclick="showStart()">← Startseite</button>
+    </div>
+  </div>
+  <div class="notes-layout">
     <div class="ntb">
       <button class="fb on" onclick="nfilt('alle',this)">Alle</button>
-      <button class="fb" onclick="nfilt('hoch',this)">⚠</button>
-      <button class="fb" onclick="nfilt('mittel',this)">●</button>
-      <button class="fb" onclick="nfilt('info',this)">✓</button>
-      <button class="fb" onclick="nfilt('allg',this)">📌</button>
-      <button class="fb" onclick="exportN()" style="margin-left:auto">↓</button>
+      <button class="fb" onclick="nfilt('hoch',this)">⚠ Wichtig</button>
+      <button class="fb" onclick="nfilt('mittel',this)">● Mittel</button>
+      <button class="fb" onclick="nfilt('info',this)">✓ Info</button>
+      <button class="fb" onclick="nfilt('allg',this)">📌 Allg.</button>
+      <button class="fb" onclick="exportN()" style="margin-left:auto">↓ Export</button>
     </div>
     <div class="nlist" id="nlist"></div>
     <div class="ncompose">
-      <textarea class="nta" id="nta" placeholder="Notiz… (Strg+Enter)" rows="3"></textarea>
+      <textarea class="nta" id="nta" placeholder="Notiz eingeben… (Strg+Enter zum Speichern)" rows="3"></textarea>
       <div class="nrow">
         <select class="nprio" id="nprio">
           <option value="allg">📌 Allgemein</option>
@@ -336,18 +411,163 @@ select.nprio{flex:1;padding:5px 6px;background:white;border:1px solid var(--bo);
   </div>
 </div>
 
-</div><!-- /main -->
+<!-- SAVE MODAL -->
+<div class="modal-bg" id="save-modal">
+  <div class="modal">
+    <h3>💾 SZENARIO SPEICHERN</h3>
+    <input type="text" id="save-name" placeholder="Name der Kreuzung (z.B. Kreuzung Potsdam Hbf)">
+    <input type="text" id="save-ort" placeholder="Ort / Adresse (optional)">
+    <textarea id="save-desc" placeholder="Beschreibung / Aufgabenstellung (optional)" rows="2"></textarea>
+    <div class="modal-btns">
+      <button class="btn-sec" onclick="closeSaveModal()">Abbrechen</button>
+      <button class="btn-save" onclick="saveScenario()">Speichern</button>
+    </div>
+  </div>
+</div>
 
 <script>
-// ═══════════════════════ MAP ═══════════════════════
-const osmTile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:21});
-const satTile = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:20});
-const map = L.map('map',{center:[52.3906,13.0645],zoom:17,zoomControl:true});
+// ═══════════════════════════════════════════════════
+// SCREEN NAVIGATION
+// ═══════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='screen-trainer') setTimeout(()=>map&&map.invalidateSize(),100);
+}
+function showStart(){ showScreen('screen-start'); }
+function showNotes(){ renderN(); showScreen('screen-notes'); }
+function showDashboard(){ renderDash(); showScreen('screen-dashboard'); }
+function newScenario(){
+  currentScenarioId=null;
+  document.getElementById('trainer-title').textContent='Neue Kreuzung';
+  clearAll();
+  scNotes=[];
+  renderScNotes();
+  showScreen('screen-trainer');
+  setTimeout(()=>map.invalidateSize(),150);
+}
+function openScenario(id){
+  const sc=scenarios.find(s=>s.id===id);
+  if(!sc) return;
+  currentScenarioId=id;
+  document.getElementById('trainer-title').textContent=sc.name;
+  clearAll();
+  scNotes=sc.notes||[];
+  renderScNotes();
+  if(sc.center) map.setView(sc.center,sc.zoom||17);
+  showScreen('screen-trainer');
+  setTimeout(()=>map.invalidateSize(),150);
+}
+
+// ═══════════════════════════════════════════════════
+// SCENARIOS (LocalStorage)
+// ═══════════════════════════════════════════════════
+let scenarios=JSON.parse(localStorage.getItem('pt5-scenarios')||'[]');
+let currentScenarioId=null;
+let scNotes=[];
+
+function saveScenarios(){ localStorage.setItem('pt5-scenarios',JSON.stringify(scenarios)); }
+
+function renderDash(){
+  const list=document.getElementById('dash-list');
+  if(!scenarios.length){
+    list.innerHTML=`<div class="dash-empty"><div class="de-icon">🗺</div><p>Noch keine Kreuzungen gespeichert.<br>Tippe auf <b>+ Neue Kreuzung</b> um zu beginnen.</p></div>`;
+    return;
+  }
+  list.innerHTML=scenarios.slice().reverse().map(sc=>`
+    <div class="scenario-card" onclick="openScenario('${sc.id}')">
+      <div class="sc-body">
+        <div class="sc-name">${esc(sc.name)}</div>
+        <div class="sc-meta">${esc(sc.ort||'Kein Ort')} · ${sc.date} · ${sc.notes?.length||0} Notizen</div>
+      </div>
+      <div class="sc-actions" onclick="event.stopPropagation()">
+        <button class="sc-btn" onclick="openScenario('${sc.id}')">Öffnen</button>
+        <button class="sc-btn del" onclick="deleteScenario('${sc.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteScenario(id){
+  if(!confirm('Szenario löschen?')) return;
+  scenarios=scenarios.filter(s=>s.id!==id);
+  saveScenarios();
+  renderDash();
+}
+
+function saveScenarioPrompt(){
+  const sc=currentScenarioId?scenarios.find(s=>s.id===currentScenarioId):null;
+  document.getElementById('save-name').value=sc?.name||'';
+  document.getElementById('save-ort').value=sc?.ort||'';
+  document.getElementById('save-desc').value=sc?.desc||'';
+  document.getElementById('save-modal').classList.add('on');
+}
+function closeSaveModal(){ document.getElementById('save-modal').classList.remove('on'); }
+
+function saveScenario(){
+  const name=document.getElementById('save-name').value.trim()||'Unbenannte Kreuzung';
+  const ort=document.getElementById('save-ort').value.trim();
+  const desc=document.getElementById('save-desc').value.trim();
+  const now=new Date();
+  const date=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const center=map.getCenter();
+  const id=currentScenarioId||'sc-'+Date.now();
+
+  const sc={id,name,ort,desc,date,notes:scNotes,center:[center.lat,center.lng],zoom:map.getZoom()};
+
+  if(currentScenarioId){
+    const i=scenarios.findIndex(s=>s.id===currentScenarioId);
+    if(i>=0) scenarios[i]=sc; else scenarios.push(sc);
+  } else {
+    scenarios.push(sc);
+    currentScenarioId=id;
+  }
+  saveScenarios();
+  document.getElementById('trainer-title').textContent=name;
+  closeSaveModal();
+  toast('✓ Szenario gespeichert');
+}
+
+// ═══════════════════════════════════════════════════
+// SCENARIO NOTES
+// ═══════════════════════════════════════════════════
+function addScNote(){
+  const inp=document.getElementById('scnote-inp');
+  const t=inp.value.trim(); if(!t) return;
+  const now=new Date();
+  const ts=now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' '+now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+  scNotes.unshift({id:Date.now(),text:t,ts});
+  inp.value='';
+  renderScNotes();
+}
+function delScNote(id){
+  scNotes=scNotes.filter(n=>n.id!==id);
+  renderScNotes();
+}
+function renderScNotes(){
+  const list=document.getElementById('scnotes-list');
+  if(!scNotes.length){
+    list.innerHTML='<div style="color:var(--mu);font-size:.75rem;text-align:center;padding:16px">Noch keine Notizen</div>';
+    return;
+  }
+  list.innerHTML=scNotes.map(n=>`
+    <div class="scnote-card">
+      <div class="scnote-ts">${esc(n.ts)}</div>
+      <div>${esc(n.text)}</div>
+      <button class="scnote-del" onclick="delScNote(${n.id})">✕</button>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// MAP INIT
+// ═══════════════════════════════════════════════════
+const osmTile=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:21});
+const satTile=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:20});
+const map=L.map('map',{center:[52.3906,13.0645],zoom:17,zoomControl:true});
 osmTile.addTo(map);
 let curLayer='osm';
 
 function setLayer(l){
-  if(l===curLayer)return;
+  if(l===curLayer) return;
   if(l==='sat'){map.removeLayer(osmTile);satTile.addTo(map);}
   else{map.removeLayer(satTile);osmTile.addTo(map);}
   curLayer=l;
@@ -355,82 +575,79 @@ function setLayer(l){
   document.getElementById('lb-sat').classList.toggle('on',l==='sat');
   document.getElementById('hp-layer').textContent=l==='sat'?'SAT':'OSM';
 }
-
 map.on('zoom',()=>document.getElementById('zoom-disp').textContent=map.getZoom());
 document.getElementById('zoom-disp').textContent=map.getZoom();
 
-// ═══════════════════════ PIN ═══════════════════════
-let pinLL=null, pinMk=null;
+// ═══════════════════════════════════════════════════
+// PIN
+// ═══════════════════════════════════════════════════
+let pinLL=null,pinMk=null;
 const pinIcon=L.divIcon({html:`<svg width="20" height="32" viewBox="0 0 20 32"><path d="M10 0C4.5 0 0 4.5 0 10c0 7.5 10 22 10 22S20 17.5 20 10C20 4.5 15.5 0 10 0z" fill="#c8401a" stroke="white" stroke-width="1.5"/><circle cx="10" cy="10" r="4" fill="white"/></svg>`,iconSize:[20,32],iconAnchor:[10,32],className:''});
 
 map.on('click',e=>{
-  if(e.originalEvent._noPin)return;
-  if(drawMode)return;
+  if(e.originalEvent&&e.originalEvent._noPin) return;
   if(placeMode){createVeh(placeMode,e.latlng,0);clearMode();return;}
   if(signMode){createSign(signMode,e.latlng);clearMode();return;}
+  if(drawMode) return;
   setPin(e.latlng);
 });
 
 function setPin(ll){
   pinLL=ll;
-  if(pinMk)pinMk.setLatLng(ll);
-  else{pinMk=L.marker(ll,{icon:pinIcon,draggable:true,zIndexOffset:5000}).addTo(map);pinMk.on('dragend',e=>{pinLL=e.target.getLatLng();updatePinUI();});}
+  if(pinMk) pinMk.setLatLng(ll);
+  else{
+    pinMk=L.marker(ll,{icon:pinIcon,draggable:true,zIndexOffset:5000}).addTo(map);
+    pinMk.on('dragend',e=>{pinLL=e.target.getLatLng();updatePinUI();});
+  }
   updatePinUI();
 }
 function updatePinUI(){
-  if(!pinLL)return;
-  const t=pinLL.lat.toFixed(5)+', '+pinLL.lng.toFixed(5);
-  document.getElementById('pin-disp').textContent=t;
+  if(!pinLL) return;
+  document.getElementById('pin-disp').textContent=pinLL.lat.toFixed(4)+','+pinLL.lng.toFixed(4);
   document.getElementById('sv-coords').textContent='Lat: '+pinLL.lat.toFixed(6)+'\nLng: '+pinLL.lng.toFixed(6);
   document.getElementById('sv-btn').disabled=false;
   document.getElementById('sv-open').disabled=false;
 }
-function openSV(){if(pinLL)window.open(`https://www.google.com/maps?layer=c&cbll=${pinLL.lat},${pinLL.lng}`,'_blank');}
+function openSV(){
+  if(pinLL) window.open(`https://www.google.com/maps?layer=c&cbll=${pinLL.lat},${pinLL.lng}`,'_blank');
+}
 
-// ═══════════════════════ MODE ═══════════════════════
+// ═══════════════════════════════════════════════════
+// MODE
+// ═══════════════════════════════════════════════════
 let placeMode=null,signMode=null;
+let drawMode=false;
 
 function setMode(txt,btns){
   const bar=document.getElementById('modebar');
-  const wrap=document.getElementById('mbtn-wrap');
-  if(!txt){bar.classList.remove('on');return;}
+  if(!txt){bar.classList.remove('on');map.getContainer().style.cursor='';return;}
   document.getElementById('modetxt').textContent=txt;
-  wrap.innerHTML=btns||'';
+  document.getElementById('mbtn-wrap').innerHTML=btns||'';
   bar.classList.add('on');
   map.getContainer().style.cursor='crosshair';
 }
 function clearMode(){
   placeMode=null;signMode=null;
   document.querySelectorAll('.chip.on,.csign.on').forEach(c=>c.classList.remove('on'));
-  map.getContainer().style.cursor='';
   setMode(null);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){clearMode();if(drawMode)cancelDraw();}});
+function startPlace(t){clearMode();if(drawMode)cancelDraw();placeMode=t;document.getElementById('chip-'+t)?.classList.add('on');setMode('PLATZIEREN: '+t+' — Karte antippen',`<button class="mbtn" onclick="clearMode()">✕</button>`);}
+function startSign(c){clearMode();if(drawMode)cancelDraw();signMode=c;setMode('VZ '+c+' — Karte antippen',`<button class="mbtn" onclick="clearMode()">✕</button>`);}
 
-function startPlace(type){
-  clearMode();cancelDraw();
-  placeMode=type;
-  document.getElementById('chip-'+type)?.classList.add('on');
-  setMode('PLATZIEREN: '+type+' — Karte antippen',`<button class="mbtn" onclick="clearMode()">✕ Abbrechen</button>`);
-}
-function startSign(code){
-  clearMode();cancelDraw();
-  signMode=code;
-  setMode('VZ '+code+' — Karte antippen',`<button class="mbtn" onclick="clearMode()">✕ Abbrechen</button>`);
-}
-
-// ═══════════════════════ VEHICLES ═══════════════════════
+// ═══════════════════════════════════════════════════
+// VEHICLES
+// ═══════════════════════════════════════════════════
 let vehs=[],vId=0;
 const VCFG={
-  PKW:  {w:18,h:40,color:'#2563eb',label:'PKW'},
-  LKW:  {w:22,h:58,color:'#dc2626',label:'LKW'},
-  Zug:  {w:22,h:58,color:'#ea580c',label:'Zug'},
-  Krad: {w:11,h:30,color:'#ca8a04',label:'Krad'},
-  Rad:  {w:9,h:24,color:'#16a34a',label:'Rad'},
-  Bus:  {w:24,h:68,color:'#7c3aed',label:'Bus'},
-  Fuss: {w:14,h:14,color:'#6b7280',label:'Fußg.'},
+  PKW:{w:18,h:40,color:'#2563eb',label:'PKW'},
+  LKW:{w:22,h:58,color:'#dc2626',label:'LKW'},
+  Zug:{w:22,h:58,color:'#ea580c',label:'Zug'},
+  Krad:{w:11,h:30,color:'#ca8a04',label:'Krad'},
+  Rad:{w:9,h:24,color:'#16a34a',label:'Rad'},
+  Bus:{w:24,h:68,color:'#7c3aed',label:'Bus'},
+  Fuss:{w:14,h:14,color:'#6b7280',label:'Fußg.'},
 };
-
 
 function createVeh(type,ll,angle){
   if(type==='Zug'){createZug(ll,angle);return;}
@@ -440,7 +657,7 @@ function createVeh(type,ll,angle){
   const html=`<div class="vm" id="vm${id}" data-id="${id}">
     <div class="vmctrl">
       <button class="vbtn rot" onclick="rotVeh(${id})">↻</button>
-      <button class="vbtn del" onclick="delVeh(${id})">✕ Löschen</button>
+      <button class="vbtn del" onclick="delVeh(${id})">✕</button>
     </div>
     ${svgVeh(type,cfg.color,cfg.w,cfg.h)}
     <div class="vlbl">${cfg.label}</div>
@@ -450,114 +667,73 @@ function createVeh(type,ll,angle){
   const vd={id,type,mk,angle,color:cfg.color,label:cfg.label,trailer:null,pathLine:null};
   vehs.push(vd);
   mk.on('add',()=>{
-    const el=mk.getElement();
-    if(!el)return;
-    const vm=el.querySelector('.vm');
-    if(vm)vm.style.transform=`rotate(${angle}deg)`;
+    const el=mk.getElement(); if(!el) return;
+    el.querySelector('.vm').style.transform=`rotate(${angle}deg)`;
     attachDrag(mk,el,vd);
   });
   updateVehUI();
-  return id;
 }
 
-// ── LKW-ZUG ──
-// Pixel-per-meter at zoom 17 ≈ 0.6px/m at equator, but we use latLng offset
-// A realistic truck = ~6m, trailer = ~13m, coupling distance ~1.5m
-// At zoom 17, 1 meter ≈ 0.00001 degrees lat ≈ 0.000014 degrees lng
-// We use a FIXED pixel offset converted to latLng for the trailer
-const TRAILER_DIST_PX = 68; // pixels at current zoom – roughly 1 truck length behind coupling
-
+const TRAILER_PX=62;
 function createZug(ll,angle){
   const id=++vId;
   const cfg=VCFG.LKW;
   const iW=cfg.w+24,iH=cfg.h+38;
-
-  // Tractor
   const html=`<div class="vm" id="vm${id}" data-id="${id}">
     <div class="vmctrl">
       <button class="vbtn rot" onclick="rotVeh(${id})">↻</button>
-      <button class="vbtn del" onclick="delVeh(${id})">✕ Löschen</button>
+      <button class="vbtn del" onclick="delVeh(${id})">✕</button>
     </div>
     ${svgVeh('LKW',cfg.color,cfg.w,cfg.h)}
     <div class="vlbl">Zug (ZM)</div>
   </div>`;
   const icon=L.divIcon({html,iconSize:[iW,iH],iconAnchor:[iW/2,iH/2-7],className:''});
   const mk=L.marker(ll,{icon,draggable:false,zIndexOffset:1000,interactive:false}).addTo(map);
-
-  // Trailer – placed directly behind tractor in screen pixels
-  const trId=id*1000+1;
-  const trW=22,trH=52;
-  const trIW=trW+16,trIH=trH+24;
-  const trHtml=`<div class="vm" id="vm${trId}" style="transform:rotate(${angle}deg)">
-    ${svgTrailer('#ea580c',trW,trH)}
-    <div class="vlbl">Anhänger</div>
-  </div>`;
-  const trIcon=L.divIcon({html:trHtml,iconSize:[trIW,trIH],iconAnchor:[trIW/2,trIH/2-5],className:''});
   const trLL=trailerLL(ll,angle);
+  const trHtml=`<div class="vm" id="vmt${id}" style="transform:rotate(${angle}deg)">${svgTrailer('#ea580c',22,52)}<div class="vlbl">Anhänger</div></div>`;
+  const trIcon=L.divIcon({html:trHtml,iconSize:[38,66],iconAnchor:[19,33],className:''});
   const trMk=L.marker(trLL,{icon:trIcon,draggable:false,zIndexOffset:999,interactive:false}).addTo(map);
-
-  // Coupling line
   const line=L.polyline([ll,trLL],{color:'#ea580c',weight:3,opacity:.8,dashArray:'4,3'}).addTo(map);
-
   const vd={id,type:'Zug',mk,angle,color:cfg.color,label:'Zug',trailer:{mk:trMk,line,angle,prevLL:ll},pathLine:null};
   vehs.push(vd);
   mk.on('add',()=>{
-    const el=mk.getElement();
-    if(!el)return;
-    const vm=el.querySelector('.vm');
-    if(vm)vm.style.transform=`rotate(${angle}deg)`;
+    const el=mk.getElement(); if(!el) return;
+    el.querySelector('.vm').style.transform=`rotate(${angle}deg)`;
     attachDrag(mk,el,vd);
   });
   updateVehUI();
 }
 
-// Calculate trailer latLng: offset behind tractor by TRAILER_DIST_PX pixels
 function trailerLL(tractorLL,angleDeg){
   const pt=map.latLngToContainerPoint(tractorLL);
   const rad=(angleDeg+180)*Math.PI/180;
-  const offPt=L.point(pt.x+Math.sin(rad)*TRAILER_DIST_PX, pt.y-Math.cos(rad)*TRAILER_DIST_PX);
-  return map.containerPointToLatLng(offPt);
+  return map.containerPointToLatLng(L.point(pt.x+Math.sin(rad)*TRAILER_PX,pt.y-Math.cos(rad)*TRAILER_PX));
 }
 
-function updateTrailer(vd,newTractorLL){
+function updateTrailer(vd,newLL){
   const t=vd.trailer;
-  const prevPt=map.latLngToContainerPoint(t.prevLL);
-  const newPt=map.latLngToContainerPoint(newTractorLL);
-  const dx=newPt.x-prevPt.x, dy=newPt.y-prevPt.y;
-  if(Math.abs(dx)+Math.abs(dy)<0.5)return;
-
-  // Tractor heading in screen coords (y-axis inverted)
+  const prev=map.latLngToContainerPoint(t.prevLL);
+  const next=map.latLngToContainerPoint(newLL);
+  const dx=next.x-prev.x,dy=next.y-prev.y;
+  if(Math.abs(dx)+Math.abs(dy)<0.5) return;
   const tractorAngle=Math.atan2(dx,-dy)*180/Math.PI;
-
-  // Trailer follows with articulation lag (60% of tractor angle change)
-  const angleDiff=((tractorAngle-t.angle)+540)%360-180;
-  const trAngle=t.angle+angleDiff*0.55;
-
-  // New trailer position: directly behind coupling point
-  const couplingPt=newPt;
+  const diff=((tractorAngle-t.angle)+540)%360-180;
+  const trAngle=t.angle+diff*0.55;
   const rad=(trAngle+180)*Math.PI/180;
-  const trPt=L.point(couplingPt.x+Math.sin(rad)*TRAILER_DIST_PX, couplingPt.y-Math.cos(rad)*TRAILER_DIST_PX);
+  const trPt=L.point(next.x+Math.sin(rad)*TRAILER_PX,next.y-Math.cos(rad)*TRAILER_PX);
   const trLL=map.containerPointToLatLng(trPt);
-
   t.mk.setLatLng(trLL);
-  t.line.setLatLngs([newTractorLL,trLL]);
-  t.angle=trAngle; t.prevLL=newTractorLL;
-  vd.angle=tractorAngle;
-
-  // Update trailer rotation
-  const trEl=t.mk.getElement()?.querySelector('.vm');
-  if(trEl)trEl.style.transform=`rotate(${trAngle}deg)`;
+  t.line.setLatLngs([newLL,trLL]);
+  t.angle=trAngle; t.prevLL=newLL; vd.angle=tractorAngle;
+  const el=t.mk.getElement()?.querySelector('.vm');
+  if(el) el.style.transform=`rotate(${trAngle}deg)`;
 }
 
-// ── MARKER DRAG ──
 function attachDrag(mk,el,vd){
-  let dragging=false,startPt,startLL;
-  let hasMoved=false;
-
+  let dragging=false,startPt,startLL,hasMoved=false;
   el.style.touchAction='none';
-
   el.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.vmctrl'))return;
+    if(e.target.closest('.vmctrl')) return;
     e.preventDefault();e.stopPropagation();
     el.setPointerCapture(e.pointerId);
     dragging=true;hasMoved=false;
@@ -566,57 +742,47 @@ function attachDrag(mk,el,vd){
     el.classList.add('dragging');
     map.dragging.disable();
   },{passive:false,capture:true});
-
   el.addEventListener('pointermove',e=>{
-    if(!dragging)return;
+    if(!dragging) return;
     e.preventDefault();e.stopPropagation();
-    const dx=e.clientX-startPt.x, dy=e.clientY-startPt.y;
-    if(Math.abs(dx)+Math.abs(dy)>3)hasMoved=true;
-    const startContainerPt=map.latLngToContainerPoint(startLL);
-    const newContainerPt=L.point(startContainerPt.x+dx,startContainerPt.y+dy);
-    const newLL=map.containerPointToLatLng(newContainerPt);
+    const dx=e.clientX-startPt.x,dy=e.clientY-startPt.y;
+    if(Math.abs(dx)+Math.abs(dy)>3) hasMoved=true;
+    const base=map.latLngToContainerPoint(startLL);
+    const newLL=map.containerPointToLatLng(L.point(base.x+dx,base.y+dy));
     mk.setLatLng(newLL);
-    if(vd.trailer)updateTrailer(vd,newLL);
+    if(vd.trailer) updateTrailer(vd,newLL);
   },{passive:false,capture:true});
-
   el.addEventListener('pointerup',e=>{
-    if(!dragging)return;
+    if(!dragging) return;
+    dragging=false;el.classList.remove('dragging');map.dragging.enable();
     e.stopPropagation();
-    dragging=false;
-    el.classList.remove('dragging');
-    map.dragging.enable();
-    // If it was a drag (not tap), prevent map click from setting a pin
-    if(hasMoved)e.nativeEvent?e.nativeEvent._noPin=true:null;
   },{capture:true});
-
-  // Block click-through after drag
   el.addEventListener('click',e=>{
-    if(hasMoved){e.stopPropagation();hasMoved=false;}
+    if(hasMoved){e.stopPropagation();e.originalEvent&&(e.originalEvent._noPin=true);}
+    hasMoved=false;
   },{capture:true});
 }
 
 function rotVeh(id){
-  const vd=vehs.find(v=>v.id===id);if(!vd)return;
+  const vd=vehs.find(v=>v.id===id); if(!vd) return;
   vd.angle=(vd.angle+45)%360;
   const el=vd.mk.getElement()?.querySelector('.vm');
-  if(el){el.dataset.angle=vd.angle;el.style.transform=`rotate(${vd.angle}deg)`;}
+  if(el) el.style.transform=`rotate(${vd.angle}deg)`;
 }
-
 function delVeh(id){
-  const i=vehs.findIndex(v=>v.id===id);if(i<0)return;
+  const i=vehs.findIndex(v=>v.id===id); if(i<0) return;
   const vd=vehs[i];
   map.removeLayer(vd.mk);
   if(vd.trailer){map.removeLayer(vd.trailer.mk);map.removeLayer(vd.trailer.line);}
-  if(vd.pathLine)map.removeLayer(vd.pathLine);
+  if(vd.pathLine) map.removeLayer(vd.pathLine);
   vehs.splice(i,1);
   updateVehUI();
 }
-
 function clearAll(){
   vehs.forEach(vd=>{
     map.removeLayer(vd.mk);
     if(vd.trailer){map.removeLayer(vd.trailer.mk);map.removeLayer(vd.trailer.line);}
-    if(vd.pathLine)map.removeLayer(vd.pathLine);
+    if(vd.pathLine) map.removeLayer(vd.pathLine);
   });
   vehs=[];
   signs.forEach(s=>map.removeLayer(s.mk));
@@ -625,30 +791,29 @@ function clearAll(){
   drawnLatLngs=[];
   updateVehUI();
 }
+function updateVehUI(){ document.getElementById('hp-veh').textContent=vehs.length+' Fz'; }
 
-function updateVehUI(){
-  document.getElementById('hp-veh').textContent=vehs.length+' Fz';
-}
-
-// ═══════════════════════ SVG BUILDERS ═══════════════════════
+// ═══════════════════════════════════════════════════
+// SVG BUILDERS
+// ═══════════════════════════════════════════════════
 function svgVeh(type,c,w,h){
-  const s={w,h};
   switch(type){
-    case 'PKW':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 18 40"><rect x="1.5" y="6" width="15" height="28" rx="3.5" fill="${c}"/><rect x="3" y="8" width="12" height="11" rx="2" fill="rgba(0,0,0,.3)"/><rect x="0" y="9" width="3" height="7" rx="1.5" fill="#111"/><rect x="15" y="9" width="3" height="7" rx="1.5" fill="#111"/><rect x="0" y="26" width="3" height="6" rx="1.5" fill="#111"/><rect x="15" y="26" width="3" height="6" rx="1.5" fill="#111"/><rect x="3.5" y="1.5" width="11" height="5.5" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3.5" y="35" width="11" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
-    case 'LKW':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 22 58"><rect x="1.5" y="15" width="19" height="40" rx="2" fill="${c}" opacity=".85"/><rect x="1.5" y="3" width="19" height="14" rx="3" fill="${c}"/><rect x="3" y="5" width="16" height="9" rx="2" fill="rgba(0,0,0,.3)"/><rect x="0" y="6" width="2.5" height="7" rx="1.5" fill="#111"/><rect x="19.5" y="6" width="2.5" height="7" rx="1.5" fill="#111"/><rect x="0" y="44" width="3.5" height="9" rx="2" fill="#111"/><rect x="18.5" y="44" width="3.5" height="9" rx="2" fill="#111"/><rect x="3" y="0" width="16" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3" y="54" width="16" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
-    case 'Krad':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 11 30"><rect x="2.5" y="4" width="6" height="22" rx="3" fill="${c}"/><ellipse cx="5.5" cy="4" rx="4" ry="4" fill="${c}"/><rect x="1.5" y="1.5" width="8" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="1.5" y="26" width="8" height="3" rx="1.5" fill="rgba(220,50,50,.9)"/><rect x="0" y="8" width="2.5" height="12" rx="1.5" fill="#222"/><rect x="8.5" y="8" width="2.5" height="12" rx="1.5" fill="#222"/></svg>`;
-    case 'Rad':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 9 24"><rect x="2.5" y="3" width="4" height="18" rx="2" fill="${c}"/><circle cx="4.5" cy="3" r="3" fill="${c}"/><rect x="1.5" y="1" width="6" height="3" rx="1.5" fill="rgba(255,255,190,.8)"/></svg>`;
-    case 'Bus':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 24 68"><rect x="1" y="4" width="22" height="60" rx="4" fill="${c}" opacity=".85"/><rect x="3" y="8" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="13" y="8" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="20" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="13" y="20" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="32" width="18" height="12" rx="1.5" fill="rgba(0,0,0,.2)"/><rect x="3" y="1" width="18" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3" y="64" width="18" height="4" rx="2" fill="rgba(220,50,50,.9)"/><rect x="1" y="50" width="4" height="10" rx="2" fill="#111"/><rect x="19" y="50" width="4" height="10" rx="2" fill="#111"/></svg>`;
-    case 'Fuss':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 14 14"><circle cx="7" cy="4.5" r="4" fill="${c}"/><path d="M1.5,14 Q7,8 12.5,14" fill="${c}"/></svg>`;
-    default:return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 18 40"><rect x="1.5" y="6" width="15" height="28" rx="3.5" fill="${c}"/></svg>`;
+    case 'PKW':return`<svg width="${w}" height="${h}" viewBox="0 0 18 40"><rect x="1.5" y="6" width="15" height="28" rx="3.5" fill="${c}"/><rect x="3" y="8" width="12" height="11" rx="2" fill="rgba(0,0,0,.3)"/><rect x="0" y="9" width="3" height="7" rx="1.5" fill="#111"/><rect x="15" y="9" width="3" height="7" rx="1.5" fill="#111"/><rect x="0" y="26" width="3" height="6" rx="1.5" fill="#111"/><rect x="15" y="26" width="3" height="6" rx="1.5" fill="#111"/><rect x="3.5" y="1.5" width="11" height="5.5" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3.5" y="35" width="11" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
+    case 'LKW':return`<svg width="${w}" height="${h}" viewBox="0 0 22 58"><rect x="1.5" y="15" width="19" height="40" rx="2" fill="${c}" opacity=".85"/><rect x="1.5" y="3" width="19" height="14" rx="3" fill="${c}"/><rect x="3" y="5" width="16" height="9" rx="2" fill="rgba(0,0,0,.3)"/><rect x="0" y="6" width="2.5" height="7" rx="1.5" fill="#111"/><rect x="19.5" y="6" width="2.5" height="7" rx="1.5" fill="#111"/><rect x="0" y="44" width="3.5" height="9" rx="2" fill="#111"/><rect x="18.5" y="44" width="3.5" height="9" rx="2" fill="#111"/><rect x="3" y="0" width="16" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3" y="54" width="16" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
+    case 'Krad':return`<svg width="${w}" height="${h}" viewBox="0 0 11 30"><rect x="2.5" y="4" width="6" height="22" rx="3" fill="${c}"/><ellipse cx="5.5" cy="4" rx="4" ry="4" fill="${c}"/><rect x="1.5" y="1.5" width="8" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="1.5" y="26" width="8" height="3" rx="1.5" fill="rgba(220,50,50,.9)"/><rect x="0" y="8" width="2.5" height="12" rx="1.5" fill="#222"/><rect x="8.5" y="8" width="2.5" height="12" rx="1.5" fill="#222"/></svg>`;
+    case 'Rad':return`<svg width="${w}" height="${h}" viewBox="0 0 9 24"><rect x="2.5" y="3" width="4" height="18" rx="2" fill="${c}"/><circle cx="4.5" cy="3" r="3" fill="${c}"/><rect x="1.5" y="1" width="6" height="3" rx="1.5" fill="rgba(255,255,190,.8)"/></svg>`;
+    case 'Bus':return`<svg width="${w}" height="${h}" viewBox="0 0 24 68"><rect x="1" y="4" width="22" height="60" rx="4" fill="${c}" opacity=".85"/><rect x="3" y="8" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="13" y="8" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="20" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="13" y="20" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="1" width="18" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3" y="64" width="18" height="4" rx="2" fill="rgba(220,50,50,.9)"/><rect x="1" y="50" width="4" height="10" rx="2" fill="#111"/><rect x="19" y="50" width="4" height="10" rx="2" fill="#111"/></svg>`;
+    case 'Fuss':return`<svg width="${w}" height="${h}" viewBox="0 0 14 14"><circle cx="7" cy="4.5" r="4" fill="${c}"/><path d="M1.5,14 Q7,8 12.5,14" fill="${c}"/></svg>`;
+    default:return`<svg width="${w}" height="${h}" viewBox="0 0 18 40"><rect x="1.5" y="6" width="15" height="28" rx="3.5" fill="${c}"/></svg>`;
   }
 }
-
 function svgTrailer(c,w,h){
   return`<svg width="${w}" height="${h}" viewBox="0 0 22 52"><rect x="1.5" y="1.5" width="19" height="46" rx="2" fill="${c}" opacity=".78"/><rect x="3" y="5" width="16" height="6" rx="1" fill="rgba(255,255,255,.18)"/><rect x="3" y="15" width="16" height="6" rx="1" fill="rgba(255,255,255,.18)"/><rect x="3" y="25" width="16" height="6" rx="1" fill="rgba(255,255,255,.18)"/><rect x="0" y="37" width="4.5" height="9" rx="2" fill="#111"/><rect x="17.5" y="37" width="4.5" height="9" rx="2" fill="#111"/><rect x="3" y="48" width="16" height="3.5" rx="1.5" fill="rgba(220,50,50,.85)"/><circle cx="11" cy="2" r="2.5" fill="#888" stroke="#555" stroke-width="1"/></svg>`;
 }
 
-// ═══════════════════════ SIGNS ═══════════════════════
+// ═══════════════════════════════════════════════════
+// SIGNS
+// ═══════════════════════════════════════════════════
 let signs=[],sId=0;
 const SIGN_SVGS={
   '205':`<svg width="44" height="40" viewBox="0 0 44 40"><polygon points="22,38 1,3 43,3" fill="white" stroke="#cc0000" stroke-width="5" stroke-linejoin="round"/></svg>`,
@@ -662,120 +827,130 @@ const SIGN_SVGS={
   '215':`<svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M19,8 A11,11 0 1,1 8,19" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/><polygon points="19,5 13,12 25,12" fill="white"/></svg>`,
   '250':`<svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="white" stroke="#cc0000" stroke-width="4.5"/><rect x="8" y="16" width="22" height="6" rx="2" fill="#cc0000"/></svg>`,
 };
-
 function createSign(code,ll){
   const sid=++sId;
   const html=`<div class="sm" id="sm${sid}">${SIGN_SVGS[code]||''}<button class="smdel" onclick="delSign(${sid})">✕</button></div>`;
   const icon=L.divIcon({html,iconSize:[46,50],iconAnchor:[23,46],className:''});
   const mk=L.marker(ll,{icon,draggable:false,zIndexOffset:2000,interactive:false}).addTo(map);
-  const sd={id:sid,code,mk};
-  signs.push(sd);
+  signs.push({id:sid,code,mk});
   mk.on('add',()=>{const el=mk.getElement();if(el)attachSignDrag(mk,el);});
 }
-
 function attachSignDrag(mk,el){
   let dragging=false,startPt,startLL;
   el.style.touchAction='none';
-  el.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.smdel'))return;
-    e.preventDefault();e.stopPropagation();
-    el.setPointerCapture(e.pointerId);
-    dragging=true;startPt=L.point(e.clientX,e.clientY);startLL=mk.getLatLng();
-    map.dragging.disable();
-  },{passive:false,capture:true});
-  el.addEventListener('pointermove',e=>{
-    if(!dragging)return;
-    e.preventDefault();
-    const startContainerPt=map.latLngToContainerPoint(startLL);
-    const newPt=L.point(startContainerPt.x+(e.clientX-startPt.x),startContainerPt.y+(e.clientY-startPt.y));
-    mk.setLatLng(map.containerPointToLatLng(newPt));
-  },{passive:false,capture:true});
-  el.addEventListener('pointerup',e=>{
-    dragging=false;map.dragging.enable();
-    e.stopPropagation();
-  },{capture:true});
+  el.addEventListener('pointerdown',e=>{if(e.target.closest('.smdel'))return;e.preventDefault();e.stopPropagation();el.setPointerCapture(e.pointerId);dragging=true;startPt=L.point(e.clientX,e.clientY);startLL=mk.getLatLng();map.dragging.disable();},{passive:false,capture:true});
+  el.addEventListener('pointermove',e=>{if(!dragging)return;e.preventDefault();const base=map.latLngToContainerPoint(startLL);mk.setLatLng(map.containerPointToLatLng(L.point(base.x+(e.clientX-startPt.x),base.y+(e.clientY-startPt.y))));},{passive:false,capture:true});
+  el.addEventListener('pointerup',e=>{dragging=false;map.dragging.enable();e.stopPropagation();},{capture:true});
   el.addEventListener('click',e=>e.stopPropagation(),{capture:true});
 }
-
 function delSign(id){const i=signs.findIndex(s=>s.id===id);if(i<0)return;map.removeLayer(signs[i].mk);signs.splice(i,1);}
 
-// ═══════════════════════ DRAW PATH ═══════════════════════
-let drawMode=false;
-let drawnLatLngs=[];
-let drawnPath=null; // L.Polyline shown during + after drawing
+// ═══════════════════════════════════════════════════
+// PATH SMOOTHING (Douglas-Peucker + Catmull-Rom)
+// ═══════════════════════════════════════════════════
+function dpSimplify(pts,eps){
+  if(pts.length<=2) return pts;
+  let maxD=0,idx=0;
+  const [p1,p2]=[pts[0],pts[pts.length-1]];
+  for(let i=1;i<pts.length-1;i++){
+    const d=ptLineDistance(pts[i],p1,p2);
+    if(d>maxD){maxD=d;idx=i;}
+  }
+  if(maxD>eps){
+    const l=dpSimplify(pts.slice(0,idx+1),eps);
+    const r=dpSimplify(pts.slice(idx),eps);
+    return [...l.slice(0,-1),...r];
+  }
+  return [p1,p2];
+}
+function ptLineDistance(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y;
+  if(dx===0&&dy===0) return Math.hypot(p.x-a.x,p.y-a.y);
+  const t=((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy);
+  const tc=Math.max(0,Math.min(1,t));
+  return Math.hypot(p.x-(a.x+tc*dx),p.y-(a.y+tc*dy));
+}
+function catmullRom(pts,steps=8){
+  if(pts.length<2) return pts;
+  const result=[pts[0]];
+  const ext=[pts[0],...pts,pts[pts.length-1]];
+  for(let i=1;i<ext.length-2;i++){
+    const[p0,p1,p2,p3]=[ext[i-1],ext[i],ext[i+1],ext[i+2]];
+    for(let s=1;s<=steps;s++){
+      const t=s/steps;
+      const t2=t*t,t3=t2*t;
+      result.push({
+        x:.5*(2*p1.x+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+        y:.5*(2*p1.y+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+      });
+    }
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════
+// DRAW PATH
+// ═══════════════════════════════════════════════════
+let drawnLatLngs=[],drawnPath=null,_drawing=false;
 
 function startDrawMode(){
-  clearMode();
-  closeDvPanel();
-  if(drawMode)cancelDraw();
+  clearMode();closeDvPanel();
+  if(drawMode) cancelDraw();
   drawMode=true;
   drawnLatLngs=[];
   if(drawnPath){map.removeLayer(drawnPath);drawnPath=null;}
-
-  // Create empty polyline for live drawing
-  drawnPath=L.polyline([],{
-    color:'#f59e0b',weight:4,opacity:.9,
-    lineCap:'round',lineJoin:'round'
-  }).addTo(map);
-
+  drawnPath=L.polyline([],{color:'#f59e0b',weight:4,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
   document.getElementById('chip-draw').classList.add('on');
-  map.dragging.disable();
-  map.touchZoom.disable();
-  map.scrollWheelZoom.disable();
-  setMode('FAHRWEG ZEICHNEN — Finger/Stift auf Karte ziehen',
-    `<button class="mbtn" onclick="cancelDraw()">✕ Abbrechen</button>`);
-
+  map.dragging.disable();map.touchZoom.disable();map.scrollWheelZoom.disable();
+  setMode('FAHRWEG ZEICHNEN — Finger/Stift ziehen',`<button class="mbtn" onclick="cancelDraw()">✕ Abbrechen</button>`);
   const mc=map.getContainer();
-  mc._drawStart=onDrawStart;
-  mc._drawMove=onDrawMove;
-  mc._drawEnd=onDrawEnd;
   mc.addEventListener('pointerdown',onDrawStart,{capture:true,passive:false});
   mc.addEventListener('pointermove',onDrawMove,{capture:true,passive:false});
   mc.addEventListener('pointerup',onDrawEnd,{capture:true,passive:false});
   mc.addEventListener('pointercancel',onDrawEnd,{capture:true,passive:false});
 }
-
-let _drawing=false;
 function onDrawStart(e){
-  // Ignore taps on UI elements
-  if(e.target.closest('.tb,.modebar,.vmctrl,.vbtn,.smdel,.dv-panel'))return;
+  if(e.target.closest('.tb,.modebar,.vmctrl,.vbtn,.smdel,.dv-panel,.hdr')) return;
   e.preventDefault();e.stopPropagation();
   _drawing=true;drawnLatLngs=[];
-  const ll=evLL(e);drawnLatLngs.push(ll);
-  drawnPath.setLatLngs([ll]);
+  drawnLatLngs.push(evLL(e));
+  drawnPath.setLatLngs(drawnLatLngs);
 }
 function onDrawMove(e){
-  if(!_drawing)return;
+  if(!_drawing) return;
   e.preventDefault();e.stopPropagation();
   drawnLatLngs.push(evLL(e));
   drawnPath.setLatLngs(drawnLatLngs);
 }
 function onDrawEnd(e){
-  if(!_drawing)return;
-  _drawing=false;
-  e.preventDefault();e.stopPropagation();
+  if(!_drawing) return;
+  _drawing=false;e.preventDefault();e.stopPropagation();
   removeDrawListeners();
   if(drawnLatLngs.length>5){
-    // Path drawn – show confirmation + vehicle selection
     drawMode=false;
     map.dragging.enable();map.touchZoom.enable();map.scrollWheelZoom.enable();
     document.getElementById('chip-draw').classList.remove('on');
-    drawnPath.setStyle({color:'#f59e0b',weight:3.5,opacity:.85,dashArray:'none'});
+    // Smooth the path visually
+    const screenPts=drawnLatLngs.map(ll=>map.latLngToContainerPoint(ll));
+    const simplified=dpSimplify(screenPts,4);
+    const smoothed=catmullRom(simplified,6);
+    const smoothLL=smoothed.map(p=>map.containerPointToLatLng(L.point(p.x,p.y)));
+    drawnLatLngs=smoothLL;
+    drawnPath.setLatLngs(smoothLL);
+    drawnPath.setStyle({color:'#f59e0b',weight:3,opacity:.8});
     setMode('✓ FAHRWEG BEREIT',
       `<button class="mbtn go" onclick="showVehSelect()">▶ Fahrzeug wählen</button>
-       <button class="mbtn" onclick="redrawPath()">↺ Neu zeichnen</button>
-       <button class="mbtn" onclick="cancelDraw()">✕ Verwerfen</button>`);
+       <button class="mbtn" onclick="redrawPath()">↺ Neu</button>
+       <button class="mbtn" onclick="cancelDraw()">✕</button>`);
   } else {
     cancelDraw();
-    setMode('Fahrweg zu kurz – erneut versuchen',`<button class="mbtn" onclick="startDrawMode()">Erneut</button><button class="mbtn" onclick="clearMode()">✕</button>`);
+    setMode('Fahrweg zu kurz',`<button class="mbtn" onclick="startDrawMode()">Erneut</button><button class="mbtn" onclick="clearMode()">✕</button>`);
   }
 }
-
 function evLL(e){
   const r=map.getContainer().getBoundingClientRect();
   return map.containerPointToLatLng(L.point(e.clientX-r.left,e.clientY-r.top));
 }
-
 function removeDrawListeners(){
   const mc=map.getContainer();
   mc.removeEventListener('pointerdown',onDrawStart,{capture:true});
@@ -783,7 +958,6 @@ function removeDrawListeners(){
   mc.removeEventListener('pointerup',onDrawEnd,{capture:true});
   mc.removeEventListener('pointercancel',onDrawEnd,{capture:true});
 }
-
 function cancelDraw(){
   drawMode=false;_drawing=false;
   removeDrawListeners();
@@ -793,71 +967,87 @@ function cancelDraw(){
   document.getElementById('chip-draw').classList.remove('on');
   setMode(null);closeDvPanel();
 }
-
 function redrawPath(){
   if(drawnPath){map.removeLayer(drawnPath);drawnPath=null;}
   drawnLatLngs=[];
   startDrawMode();
 }
 
-// ═══════════════════════ VEHICLE SELECT FOR DRIVE ═══════════════════════
+// ═══════════════════════════════════════════════════
+// DRIVE ANIMATION (smooth interpolation)
+// ═══════════════════════════════════════════════════
 function showVehSelect(){
   closeDvPanel();
-  if(vehs.length===0){
-    setMode('Kein Fahrzeug vorhanden – bitte zuerst Fahrzeug platzieren',
-      `<button class="mbtn" onclick="cancelDraw()">✕</button>`);
-    return;
-  }
-  const list=document.getElementById('dv-list');
-  list.innerHTML=vehs.map(v=>`
+  if(!vehs.length){setMode('Kein Fahrzeug – erst platzieren',`<button class="mbtn" onclick="cancelDraw()">✕</button>`);return;}
+  document.getElementById('dv-list').innerHTML=vehs.map(v=>`
     <div class="dv-item" onclick="startDrive(${v.id})">
       <div class="dv-dot" style="background:${v.color}"></div>
       <span>${v.label} #${v.id}</span>
     </div>`).join('');
   document.getElementById('dv-panel').classList.add('on');
-  setMode('FAHRZEUG WÄHLEN',`<button class="mbtn" onclick="cancelDraw()">✕ Abbrechen</button>`);
+  setMode('FAHRZEUG WÄHLEN',`<button class="mbtn" onclick="cancelDraw()">✕</button>`);
 }
-
 function closeDvPanel(){document.getElementById('dv-panel').classList.remove('on');}
 
 function startDrive(id){
-  closeDvPanel();
-  setMode(null);
+  closeDvPanel();setMode(null);
   const vd=vehs.find(v=>v.id===id);
-  if(!vd||drawnLatLngs.length<2)return;
+  if(!vd||drawnLatLngs.length<2) return;
+  if(drawnPath && typeof drawnPath.setStyle==='function') drawnPath.setStyle({opacity:.3,weight:2,dashArray:'5,4'});
 
-  const pts=drawnLatLngs.slice();
-  const total=pts.length;
-  const stepSize=Math.max(1,Math.floor(total/120));
-  let idx=0;
+  // Pre-compute smooth animation frames at fixed pixel distance
+  const pts=drawnLatLngs.map(ll=>map.latLngToContainerPoint(ll));
+  // Resample to equal-distance steps for smooth animation
+  const resampled=resamplePath(pts,4); // 4px steps = smooth
+  const totalFrames=resampled.length;
+  if(totalFrames<2) return;
 
-  // Fade the drawn path
-  if(drawnPath)drawnPath.setStyle({opacity:.35,weight:2,dashArray:'6,4'});
+  let frame=0;
+  const FRAMES_PER_TICK=2; // controls speed
 
   function animate(){
-    if(idx>=total-1){return;}
-    const next=pts[Math.min(idx+stepSize,total-1)];
-    const cur=vd.mk.getLatLng();
-
-    // Angle from current to next in screen coordinates
-    const curPt=map.latLngToContainerPoint(cur);
-    const nextPt=map.latLngToContainerPoint(next);
-    const dx=nextPt.x-curPt.x, dy=nextPt.y-curPt.y;
-    const angle=Math.atan2(dx,-dy)*180/Math.PI;
-
-    vd.mk.setLatLng(next);
+    if(frame>=totalFrames-1) return;
+    const nextFrame=Math.min(frame+FRAMES_PER_TICK,totalFrames-1);
+    const cur=resampled[frame];
+    const nxt=resampled[nextFrame];
+    const angle=Math.atan2(nxt.x-cur.x,-(nxt.y-cur.y))*180/Math.PI;
+    const ll=map.containerPointToLatLng(L.point(nxt.x,nxt.y));
+    vd.mk.setLatLng(ll);
     vd.angle=angle;
     const el=vd.mk.getElement()?.querySelector('.vm');
-    if(el)el.style.transform=`rotate(${angle}deg)`;
-    if(vd.trailer)updateTrailer(vd,next);
-
-    idx=Math.min(idx+stepSize,total-1);
+    if(el) el.style.transform=`rotate(${angle}deg)`;
+    if(vd.trailer) updateTrailer(vd,ll);
+    frame=nextFrame;
     requestAnimationFrame(animate);
   }
   requestAnimationFrame(animate);
 }
 
-// ═══════════════════════ AUTOCOMPLETE ═══════════════════════
+function resamplePath(pts,stepPx){
+  if(pts.length<2) return pts;
+  const result=[pts[0]];
+  let acc=0,i=0;
+  while(i<pts.length-1){
+    const dx=pts[i+1].x-pts[i].x,dy=pts[i+1].y-pts[i].y;
+    const seg=Math.hypot(dx,dy);
+    if(seg===0){i++;continue;}
+    const remaining=stepPx-acc;
+    if(seg>=remaining){
+      const t=remaining/seg;
+      const np=L.point(pts[i].x+dx*t,pts[i].y+dy*t);
+      result.push(np);
+      pts.splice(i+1,0,np);
+      i++;acc=0;
+    } else {
+      acc+=seg;i++;
+    }
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════
+// AUTOCOMPLETE
+// ═══════════════════════════════════════════════════
 let acTimer=null,acRes=[],acSel=-1;
 function acInput(){
   const q=document.getElementById('ac-inp').value.trim();
@@ -878,7 +1068,7 @@ function hiAc(items){items.forEach((el,i)=>el.classList.toggle('sel',i===acSel))
 async function fetchAc(q,imm=false){
   const sp=document.getElementById('ac-spin');sp.classList.add('on');
   try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=7&addressdetails=1&accept-language=de&countrycodes=de,at,ch`,{headers:{'User-Agent':'PraxistrainerBw/4.0'}});
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=7&addressdetails=1&accept-language=de&countrycodes=de,at,ch`,{headers:{'User-Agent':'PraxistrainerBw/5.0'}});
     acRes=await r.json();
     if(imm&&acRes.length===1){pickAc(acRes[0]);return;}
     renderAc();
@@ -903,53 +1093,53 @@ function pickAc(r){
 function closeAc(){document.getElementById('ac-list').classList.remove('open');acRes=[];acSel=-1;}
 document.addEventListener('click',e=>{if(!document.getElementById('ac-inp').contains(e.target)&&!document.getElementById('ac-list').contains(e.target))closeAc();});
 
-// ═══════════════════════ PORTRAIT TABS ═══════════════════════
+// ═══════════════════════════════════════════════════
+// PORTRAIT + SIDEBAR TABS
+// ═══════════════════════════════════════════════════
 function ptab(tab,btn){
-  document.querySelectorAll('.ptabs button').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+  document.querySelectorAll('.ptabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
   const mp=document.getElementById('pane-map'),sd=document.getElementById('pane-side');
   if(tab==='map'){mp.classList.remove('gone');sd.classList.add('gone');setTimeout(()=>map.invalidateSize(),50);}
   else{mp.classList.add('gone');sd.classList.remove('gone');}
 }
 window.addEventListener('resize',()=>{
   if(window.matchMedia('(orientation:landscape)').matches){
-    document.getElementById('pane-map').classList.remove('gone');
-    document.getElementById('pane-side').classList.remove('gone');
+    document.getElementById('pane-map')?.classList.remove('gone');
+    document.getElementById('pane-side')?.classList.remove('gone');
   }
-  setTimeout(()=>map.invalidateSize(),100);
+  setTimeout(()=>map&&map.invalidateSize(),100);
 });
-
-// ═══════════════════════ SIDEBAR TABS ═══════════════════════
 function stab(tab,btn){
-  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
   document.querySelectorAll('.spanel').forEach(p=>p.classList.remove('on'));
   document.getElementById('sp-'+tab).classList.add('on');
 }
 
-// ═══════════════════════ NOTES ═══════════════════════
-let notes=JSON.parse(localStorage.getItem('pt4-notes')||'[]');
+// ═══════════════════════════════════════════════════
+// GLOBAL NOTES
+// ═══════════════════════════════════════════════════
+let notes=JSON.parse(localStorage.getItem('pt5-notes')||'[]');
 let nId=notes.length?Math.max(...notes.map(n=>n.id))+1:1;
 let nFilt='alle';
 const PL={hoch:'⚠ Wichtig',mittel:'● Mittel',info:'✓ Info',allg:'📌 Allg.'};
 const PC={hoch:'nbh',mittel:'nbm',info:'nbi',allg:'nba'};
 const CC={hoch:'ph',mittel:'pm',info:'pi',allg:''};
-
-function saveN(){localStorage.setItem('pt4-notes',JSON.stringify(notes));document.getElementById('hp-notes').textContent=notes.length+' Notizen';}
+function saveN(){localStorage.setItem('pt5-notes',JSON.stringify(notes));}
 function addN(){
   const t=document.getElementById('nta').value.trim();if(!t)return;
   const p=document.getElementById('nprio').value;
   const now=new Date();
   const ts=now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' · '+now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
   notes.unshift({id:nId++,text:t,prio:p,ts});
-  document.getElementById('nta').value='';saveN();renderN();
+  document.getElementById('nta').value='';
+  saveN();renderN();
 }
 function delN(id){notes=notes.filter(n=>n.id!==id);saveN();renderN();}
 function nfilt(f,btn){nFilt=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderN();}
 function renderN(){
   const list=document.getElementById('nlist');
   const shown=nFilt==='alle'?notes:notes.filter(n=>n.prio===nFilt);
-  if(!shown.length){list.innerHTML=`<div style="color:var(--mu);font-size:.75rem;text-align:center;padding:18px">Keine Notizen</div>`;return;}
+  if(!shown.length){list.innerHTML=`<div style="color:var(--mu);font-size:.8rem;text-align:center;padding:24px">Keine Notizen</div>`;return;}
   list.innerHTML=shown.map(n=>`<div class="ncard ${CC[n.prio]}"><div class="nmeta"><span class="nbadge ${PC[n.prio]}">${PL[n.prio]}</span><span>${n.ts}</span></div><div>${esc(n.text)}</div><button class="ndel" onclick="delN(${n.id})">✕</button></div>`).join('');
 }
 function exportN(){
@@ -959,15 +1149,20 @@ function exportN(){
 }
 document.getElementById('nta').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey)addN();});
 
-// ═══════════════════════ UTILS ═══════════════════════
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg){
+  let t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(26,28,30,.95);color:#f0ece4;padding:8px 18px;border-radius:4px;font-family:Rajdhani,sans-serif;font-size:.85rem;font-weight:600;letter-spacing:.04em;z-index:9999;pointer-events:none;transition:opacity .3s';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2500);
+}
 
 // INIT
-saveN();renderN();
-// Force map to render correctly after all DOM is settled
-setTimeout(()=>map.invalidateSize(),100);
-setTimeout(()=>map.invalidateSize(),500);
-window.addEventListener('load',()=>map.invalidateSize());
+renderN();
+setTimeout(()=>map.invalidateSize(),300);
 </script>
 </body>
 </html>
