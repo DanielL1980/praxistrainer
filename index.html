@@ -6,959 +6,964 @@
 <title>Praxistrainer – KFAz Potsdam</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#1a1c1e;--ink2:#2c2f33;--ink3:#3d4147;
-  --chrome:#f0ece4;--chrome2:#e4dfd5;--border:#c8c3b8;
-  --accent:#c8401a;--a2:#1a6fc8;--gold:#b8941a;--green:#2a7a3a;
-  --muted:#6b7280;--panel:#f7f3ec;
-  --hdr:52px;--tab:48px;--sb:38%;
+  --ch:#f0ece4;--ch2:#e4dfd5;--bo:#c8c3b8;
+  --red:#c8401a;--blue:#1a6fc8;--gold:#b8941a;--gr:#2a7a3a;
+  --mu:#6b7280;--pa:#f7f3ec;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden}
-body{background:var(--chrome);color:var(--ink);font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;height:100dvh}
+body{font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;height:100dvh;background:var(--ch)}
 
-header{height:var(--hdr);background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;border-bottom:3px solid var(--accent)}
-.logo{font-size:1.15rem;font-weight:700;color:var(--chrome);letter-spacing:.1em;display:flex;align-items:center;gap:8px}
-.logo-dot{width:7px;height:7px;background:var(--accent);border-radius:50%}
-.logo-sub{font-weight:400;font-size:.78rem;color:#5a6070;letter-spacing:.04em}
-.pills{display:flex;gap:5px}
-.pill{font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:2px 7px;border-radius:2px;background:var(--ink2);border:1px solid var(--ink3);color:#5a6070}
-.pill.on{border-color:var(--green);color:#4ade80}
+header{height:50px;background:var(--ink);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0;border-bottom:3px solid var(--red)}
+.logo{font-size:1.1rem;font-weight:700;color:var(--ch);letter-spacing:.09em;display:flex;align-items:center;gap:7px}
+.ldot{width:7px;height:7px;background:var(--red);border-radius:50%}
+.lsub{font-weight:400;font-size:.75rem;color:#5a6070}
+.hpills{margin-left:auto;display:flex;gap:4px}
+.hpill{font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 6px;border-radius:2px;background:var(--ink2);border:1px solid var(--ink3);color:#5a6070}
+.hpill.on{border-color:var(--gr);color:#4ade80}
 
-.tab-bar{display:none;height:var(--tab);background:var(--ink2);border-bottom:1px solid var(--ink3);flex-shrink:0}
-.tab-bar button{flex:1;height:100%;background:none;border:none;border-bottom:3px solid transparent;color:#6b7280;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;letter-spacing:.05em;cursor:pointer;transition:color .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:5px}
-.tab-bar button.active{color:var(--chrome);border-bottom-color:var(--accent)}
+.ptabs{display:none;height:44px;background:var(--ink2);flex-shrink:0;border-bottom:1px solid var(--ink3)}
+.ptabs button{flex:1;height:100%;background:none;border:none;border-bottom:3px solid transparent;color:#6b7280;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:color .2s,border-color .2s}
+.ptabs button.on{color:var(--ch);border-bottom-color:var(--red)}
 @media(orientation:portrait){
-  .tab-bar{display:flex}
-  .pane-map,.pane-sidebar{position:absolute;inset:0;flex:1 1 100%;border-right:none}
+  .ptabs{display:flex}
+  .pane-map,.pane-side{position:absolute;inset:0;border-right:none}
   .main{position:relative}
-  .tab-hidden{display:none!important}
+  .gone{display:none!important}
 }
 
 .main{flex:1;display:flex;overflow:hidden;min-height:0}
-.pane-map{flex:1;display:flex;flex-direction:column;border-right:2px solid var(--border);overflow:hidden;position:relative}
-.pane-sidebar{flex:0 0 var(--sb);display:flex;flex-direction:column;overflow:hidden;background:var(--panel)}
+.pane-map{flex:1;display:flex;flex-direction:column;border-right:2px solid var(--bo);overflow:hidden;position:relative}
+.pane-side{flex:0 0 36%;display:flex;flex-direction:column;overflow:hidden;background:var(--pa)}
 
-.toolbar{background:var(--ink2);border-bottom:1px solid var(--ink3);padding:6px 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;z-index:500}
-.tb-lbl{font-size:.65rem;font-weight:600;color:#4a5260;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.sep{width:1px;height:20px;background:var(--ink3);flex-shrink:0}
-
-.chip{display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;color:var(--chrome);font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:border-color .15s,background .15s;user-select:none;white-space:nowrap;-webkit-user-select:none}
-.chip:hover{border-color:var(--a2);background:#353a45}
-.chip.mode-on{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,.12)}
-.chip .dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-
-.sign-chip{display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;cursor:pointer;transition:border-color .15s;position:relative;flex-shrink:0}
-.sign-chip:hover{border-color:var(--gold)}
-.sign-chip svg{width:22px;height:22px}
-.sign-chip[title]:hover::after{content:attr(title);position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--chrome);font-size:.62rem;padding:2px 6px;border-radius:2px;white-space:nowrap;z-index:9999;pointer-events:none}
-
-.layer-toggle{display:flex;border:1px solid #4a5060;border-radius:3px;overflow:hidden;flex-shrink:0}
-.layer-btn{padding:4px 9px;background:var(--ink3);border:none;color:#7a8090;font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
-.layer-btn.active{background:var(--a2);color:white}
-
-.ac-wrap{position:relative;width:210px;flex-shrink:0}
-@media(max-width:700px){.ac-wrap{width:150px}}
-.ac-input{width:100%;padding:5px 24px 5px 8px;background:var(--ink);border:1px solid var(--ink3);border-radius:3px;color:var(--chrome);font-size:.76rem;font-family:'Rajdhani',sans-serif;outline:none;transition:border-color .15s}
-.ac-input:focus{border-color:var(--a2)}
-.ac-spin{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:11px;height:11px;border:2px solid var(--ink3);border-top-color:var(--a2);border-radius:50%;animation:spin .6s linear infinite;display:none}
+/* TOOLBAR */
+.tb{background:var(--ink2);border-bottom:1px solid var(--ink3);padding:5px 9px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex-shrink:0;z-index:600}
+.tbl{font-size:.6rem;font-weight:700;color:#4a5260;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.tsep{width:1px;height:18px;background:var(--ink3);flex-shrink:0}
+.chip{display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;-webkit-user-select:none;transition:border-color .15s,background .15s}
+.chip:active{background:#454b58}
+.chip.on{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,.1)}
+.chip .dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.csign{width:30px;height:30px;background:var(--ink3);border:1px solid #4a5060;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.csign svg{width:20px;height:20px}
+.csign:active{background:#454b58}
+.csign[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--ch);font-size:.58rem;padding:2px 5px;border-radius:2px;white-space:nowrap;z-index:9999;pointer-events:none}
+.ltog{display:flex;border:1px solid #4a5060;border-radius:3px;overflow:hidden;flex-shrink:0}
+.ltog button{padding:4px 8px;background:var(--ink3);border:none;color:#6a7080;font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
+.ltog button.on{background:var(--blue);color:white}
+.ac-wrap{position:relative;flex-shrink:0;width:190px}
+.ac-inp{width:100%;padding:4px 22px 4px 7px;background:var(--ink);border:1px solid var(--ink3);border-radius:3px;color:var(--ch);font-size:.75rem;font-family:'Rajdhani',sans-serif;outline:none}
+.ac-inp:focus{border-color:var(--blue)}
+.ac-spin{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:11px;height:11px;border:2px solid var(--ink3);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;display:none}
 .ac-spin.on{display:block}
 @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
-.ac-list{position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--ink);border:1px solid var(--ink3);border-radius:3px;list-style:none;z-index:9999;max-height:230px;overflow-y:auto;display:none;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+.ac-list{position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--ink);border:1px solid var(--ink3);border-radius:3px;list-style:none;z-index:9999;max-height:220px;overflow-y:auto;display:none;box-shadow:0 6px 20px rgba(0,0,0,.6)}
 .ac-list.open{display:block}
-.ac-item{padding:7px 10px;font-family:'Rajdhani',sans-serif;font-size:.78rem;color:var(--chrome2);cursor:pointer;border-bottom:1px solid var(--ink2);transition:background .1s;display:flex;align-items:flex-start;gap:6px}
-.ac-item:last-child{border-bottom:none}
-.ac-item:hover,.ac-item.sel{background:var(--ink3);color:var(--chrome)}
+.ac-item{padding:6px 9px;font-family:'Rajdhani',sans-serif;font-size:.78rem;color:var(--ch2);cursor:pointer;border-bottom:1px solid var(--ink2);transition:background .1s}
+.ac-item:hover,.ac-item.sel{background:var(--ink3);color:var(--ch)}
 .ac-main{font-weight:600}
-.ac-sub{font-size:.65rem;color:#4a5360}
+.ac-sub{font-size:.63rem;color:#4a5360}
 
-.mode-bar{height:26px;background:rgba(245,158,11,.15);border-bottom:1px solid rgba(245,158,11,.3);display:none;align-items:center;padding:0 10px;gap:8px;flex-shrink:0}
-.mode-bar.on{display:flex}
-.mode-txt{font-size:.72rem;font-weight:700;color:#f59e0b;letter-spacing:.05em}
-.mode-cancel{margin-left:auto;padding:2px 9px;background:none;border:1px solid rgba(245,158,11,.5);border-radius:2px;color:#f59e0b;font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer}
+/* MODE BAR */
+.modebar{background:rgba(245,158,11,.18);border-bottom:1px solid rgba(245,158,11,.4);padding:0 10px;height:36px;display:none;align-items:center;gap:8px;flex-shrink:0}
+.modebar.on{display:flex}
+.modetxt{font-size:.75rem;font-weight:700;color:#f59e0b;letter-spacing:.05em}
+.mbtn{padding:4px 11px;border-radius:3px;border:1px solid rgba(245,158,11,.5);background:none;color:#f59e0b;font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:background .15s}
+.mbtn:hover{background:rgba(245,158,11,.15)}
+.mbtn.go{background:#16a34a;border-color:#16a34a;color:white}
+.mbtn.go:hover{background:#15803d}
 
-#map{flex:1;z-index:1}
+/* MAP */
+#map{flex:1;z-index:1;cursor:default}
 
+/* DRAW OVERLAY - SVG over the map container */
+#draw-svg{position:absolute;inset:0;pointer-events:none;z-index:500;overflow:visible}
+#draw-svg.active{pointer-events:all;cursor:crosshair}
 
-.coord-bar{height:24px;background:var(--ink2);border-top:1px solid var(--ink3);display:flex;align-items:center;padding:0 10px;gap:12px;flex-shrink:0}
-.coord-txt{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:#4a5370;letter-spacing:.04em}
-.coord-txt span{color:#7a8390}
-.sv-btn-sm{margin-left:auto;padding:2px 9px;background:none;border:1px solid var(--gold);border-radius:2px;color:var(--gold);font-family:'Rajdhani',sans-serif;font-size:.68rem;font-weight:600;cursor:pointer}
-.sv-btn-sm:disabled{border-color:#3a4050;color:#3a4050;cursor:default}
+/* COORD BAR */
+.cbar{height:24px;background:var(--ink2);border-top:1px solid var(--ink3);display:flex;align-items:center;padding:0 9px;gap:10px;flex-shrink:0}
+.ctxt{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:#4a5370}
+.ctxt span{color:#7a8390}
+.svbtn{margin-left:auto;padding:2px 8px;background:none;border:1px solid var(--gold);border-radius:2px;color:var(--gold);font-family:'Rajdhani',sans-serif;font-size:.65rem;font-weight:700;cursor:pointer}
+.svbtn:disabled{border-color:#3a4050;color:#3a4050;cursor:default}
 
-/* VEHICLE MARKER */
-.vm{position:relative;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+/* VEHICLE MARKERS */
+.vm{position:relative;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
+.vm.dragging{cursor:grabbing;z-index:9000!important}
 .vm svg{display:block;pointer-events:none}
-.vm-ctrl{position:absolute;top:-28px;left:50%;transform:translateX(-50%);display:flex;gap:3px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8000}
-.vm:hover .vm-ctrl,.vm.sel .vm-ctrl{opacity:1;pointer-events:auto}
-.vm-btn{width:24px;height:24px;border-radius:50%;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;touch-action:manipulation;-webkit-user-select:none}
-.vm-rot{background:var(--ink2);color:var(--chrome)}
-.vm-del{background:var(--accent);color:white;font-size:11px}
-.vm-go{background:#16a34a;color:white;font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;width:auto;padding:0 6px;border-radius:10px}
-.vm-lbl{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:.52rem;background:rgba(0,0,0,.8);color:white;padding:1px 4px;border-radius:2px;white-space:nowrap;pointer-events:none}
-.vm.sel{filter:drop-shadow(0 0 5px rgba(245,158,11,.9))}
-.vm.driving{cursor:default;filter:drop-shadow(0 0 6px rgba(22,163,74,.8))}
+.vmctrl{position:absolute;top:-26px;left:50%;transform:translateX(-50%);display:flex;gap:3px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8000;white-space:nowrap}
+.vm:hover .vmctrl{opacity:1;pointer-events:auto}
+.vbtn{height:22px;border-radius:11px;border:none;font-size:.7rem;cursor:pointer;display:flex;align-items:center;padding:0 7px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.03em;touch-action:manipulation}
+.vbtn.rot{background:var(--ink2);color:var(--ch);font-size:14px;padding:0 6px}
+.vbtn.del{background:var(--red);color:white}
+.vlbl{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:.5rem;background:rgba(0,0,0,.8);color:white;padding:1px 4px;border-radius:2px;white-space:nowrap;pointer-events:none}
 
-/* SIGN MARKER */
-.sm{cursor:grab;position:relative;touch-action:none}
-.sm svg{display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-.sm-del{position:absolute;top:-8px;right:-8px;width:18px;height:18px;background:var(--accent);border-radius:50%;border:none;color:white;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;font-weight:bold}
-.sm:hover .sm-del{display:flex}
+/* SIGN MARKERS */
+.sm{cursor:grab;position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
+.sm svg{display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));pointer-events:none}
+.smdel{position:absolute;top:-7px;right:-7px;width:17px;height:17px;background:var(--red);border-radius:50%;border:none;color:white;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;font-weight:bold;line-height:1}
+.sm:hover .smdel{display:flex}
+
+/* DRIVE VEHICLE SELECT PANEL */
+.dv-panel{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--ink);border:1px solid var(--gold);border-radius:6px;padding:10px 14px;z-index:2000;display:none;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+.dv-panel.on{display:block}
+.dv-title{font-size:.8rem;font-weight:700;color:var(--gold);letter-spacing:.05em;margin-bottom:8px}
+.dv-list{display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto}
+.dv-item{padding:6px 10px;background:var(--ink2);border:1px solid var(--ink3);border-radius:3px;color:var(--ch);font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:8px;transition:border-color .15s}
+.dv-item:hover{border-color:var(--gold)}
+.dv-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.dv-cancel{margin-top:8px;width:100%;padding:5px;background:none;border:1px solid #4a5060;border-radius:3px;color:var(--mu);font-family:'Rajdhani',sans-serif;font-size:.75rem;cursor:pointer}
 
 /* SIDEBAR */
-.sb-tabs{display:flex;background:var(--chrome2);border-bottom:2px solid var(--border);flex-shrink:0}
-.sb-tab{flex:1;padding:8px 0;background:none;border:none;border-bottom:3px solid transparent;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);letter-spacing:.04em;cursor:pointer;transition:color .15s,border-color .15s}
-.sb-tab.active{color:var(--ink);border-bottom-color:var(--a2)}
-.sb-panel{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0}
-.sb-panel.active{display:flex}
+.stabs{display:flex;background:var(--ch2);border-bottom:2px solid var(--bo);flex-shrink:0}
+.stab{flex:1;padding:8px 0;background:none;border:none;border-bottom:3px solid transparent;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;color:var(--mu);cursor:pointer;transition:color .15s,border-color .15s;letter-spacing:.04em}
+.stab.on{color:var(--ink);border-bottom-color:var(--blue)}
+.spanel{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0}
+.spanel.on{display:flex}
 
-.sv-panel{padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
-.sv-card{background:white;border:1px solid var(--border);border-radius:5px;overflow:hidden}
-.sv-hdr{background:var(--ink);padding:6px 11px;font-size:.78rem;font-weight:600;color:var(--chrome2);letter-spacing:.05em}
-.sv-body{padding:9px 11px;font-size:.76rem;line-height:1.55;color:var(--muted)}
-.sv-coords{font-family:'Share Tech Mono',monospace;font-size:.72rem;background:var(--chrome2);border:1px solid var(--border);border-radius:3px;padding:6px 9px;color:var(--ink);letter-spacing:.04em}
-.sv-open{display:block;width:100%;padding:10px;background:var(--ink);border:none;border-radius:5px;color:var(--chrome);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.06em;cursor:pointer;text-align:center;transition:background .15s}
-.sv-open:hover{background:var(--ink3)}
-.sv-open:disabled{background:var(--chrome2);color:var(--muted);cursor:default}
-.sv-tip{font-size:.7rem;color:var(--muted);font-style:italic;line-height:1.5;border-left:3px solid var(--border);padding-left:8px}
+/* SV PANEL */
+.sv-wrap{padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.sv-card{background:white;border:1px solid var(--bo);border-radius:5px;overflow:hidden}
+.sv-hdr{background:var(--ink);padding:6px 11px;font-size:.78rem;font-weight:600;color:var(--ch2);letter-spacing:.05em}
+.sv-body{padding:9px 11px;font-size:.75rem;line-height:1.55;color:var(--mu)}
+.sv-coords{font-family:'Share Tech Mono',monospace;font-size:.72rem;background:var(--ch2);border:1px solid var(--bo);border-radius:3px;padding:6px 9px;color:var(--ink)}
+.sv-btn{display:block;width:100%;padding:10px;background:var(--ink);border:none;border-radius:5px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.06em;cursor:pointer;text-align:center}
+.sv-btn:disabled{background:var(--ch2);color:var(--mu);cursor:default}
+.sv-tip{font-size:.7rem;color:var(--mu);font-style:italic;line-height:1.5;border-left:3px solid var(--bo);padding-left:8px}
 
-.ntb{padding:6px 8px;background:var(--chrome2);border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
-.fb{padding:3px 8px;background:white;border:1px solid var(--border);border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s}
-.fb.active{border-color:var(--a2);color:var(--a2)}
+/* NOTES */
+.ntb{padding:6px 8px;background:var(--ch2);border-bottom:1px solid var(--bo);display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+.fb{padding:3px 8px;background:white;border:1px solid var(--bo);border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:600;color:var(--mu);cursor:pointer}
+.fb.on{border-color:var(--blue);color:var(--blue)}
 .nlist{flex:1;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:5px}
-.nlist::-webkit-scrollbar{width:3px}
-.nlist::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.ncard{background:white;border:1px solid var(--border);border-left:4px solid var(--a2);border-radius:0 4px 4px 0;padding:6px 8px;font-size:.76rem;line-height:1.5;position:relative}
-.ncard.ph{border-left-color:var(--accent)}
+.ncard{background:white;border:1px solid var(--bo);border-left:4px solid var(--blue);border-radius:0 4px 4px 0;padding:6px 8px;font-size:.75rem;line-height:1.5;position:relative}
+.ncard.ph{border-left-color:var(--red)}
 .ncard.pm{border-left-color:var(--gold)}
-.ncard.pi{border-left-color:var(--green)}
-.nmeta{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:3px}
-.nbadge{padding:1px 4px;border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.nbh{background:#fee2e2;color:var(--accent)}
-.nbm{background:#fef9c3;color:#8a6800}
-.nbi{background:#dcfce7;color:var(--green)}
-.nba{background:#dbeafe;color:var(--a2)}
-.ndel{position:absolute;top:5px;right:6px;background:none;border:none;color:var(--border);font-size:.78rem;cursor:pointer;transition:color .15s}
-.ndel:hover{color:var(--accent)}
-.ncompose{border-top:2px solid var(--border);padding:7px;background:var(--chrome2);display:flex;flex-direction:column;gap:5px;flex-shrink:0}
-textarea.nta{width:100%;min-height:50px;resize:none;padding:6px 8px;background:white;border:1px solid var(--border);border-radius:3px;outline:none;font-family:'Rajdhani',sans-serif;font-size:.78rem;line-height:1.5;color:var(--ink)}
-textarea.nta:focus{border-color:var(--a2)}
-.nrow{display:flex;gap:5px;align-items:center}
-select.nprio{flex:1;padding:5px 7px;background:white;border:1px solid var(--border);border-radius:3px;font-size:.76rem;color:var(--ink);cursor:pointer;outline:none}
-.nadd{padding:5px 14px;background:var(--ink);border:none;border-radius:3px;color:var(--chrome);font-family:'Rajdhani',sans-serif;font-size:.86rem;font-weight:700;letter-spacing:.04em;cursor:pointer}
-.nadd:hover{background:var(--ink3)}
-
-.leaflet-control-attribution{font-size:.55rem!important}
+.ncard.pi{border-left-color:var(--gr)}
+.nmeta{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--mu);display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.nbadge{padding:1px 4px;border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:.58rem;font-weight:700;text-transform:uppercase}
+.nbh{background:#fee2e2;color:var(--red)}.nbm{background:#fef9c3;color:#8a6800}
+.nbi{background:#dcfce7;color:var(--gr)}.nba{background:#dbeafe;color:var(--blue)}
+.ndel{position:absolute;top:4px;right:6px;background:none;border:none;color:var(--bo);font-size:.75rem;cursor:pointer}
+.ndel:hover{color:var(--red)}
+.ncompose{border-top:2px solid var(--bo);padding:7px;background:var(--ch2);display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+textarea.nta{width:100%;min-height:48px;resize:none;padding:5px 7px;background:white;border:1px solid var(--bo);border-radius:3px;outline:none;font-family:'Rajdhani',sans-serif;font-size:.77rem;line-height:1.5;color:var(--ink)}
+textarea.nta:focus{border-color:var(--blue)}
+.nrow{display:flex;gap:5px}
+select.nprio{flex:1;padding:5px 6px;background:white;border:1px solid var(--bo);border-radius:3px;font-size:.75rem;outline:none}
+.nadd{padding:5px 12px;background:var(--ink);border:none;border-radius:3px;color:var(--ch);font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    PRAXISTRAINER
-    <span class="logo-sub">KFAz Potsdam</span>
-  </div>
-  <div class="pills">
-    <span class="pill on" id="pill-veh">0 Fz</span>
-    <span class="pill" id="pill-notes">0 Notizen</span>
-    <span class="pill" id="pill-mode">OSM</span>
+  <div class="logo"><div class="ldot"></div>PRAXISTRAINER<span class="lsub">KFAz Potsdam</span></div>
+  <div class="hpills">
+    <span class="hpill on" id="hp-veh">0 Fz</span>
+    <span class="hpill" id="hp-notes">0 Notizen</span>
+    <span class="hpill" id="hp-layer">OSM</span>
   </div>
 </header>
 
-<div class="tab-bar" id="tab-bar">
-  <button class="active" onclick="switchTab('map',this)">🗺 Karte</button>
-  <button onclick="switchTab('sidebar',this)">📋 Info / Notizen</button>
+<div class="ptabs" id="ptabs">
+  <button class="on" onclick="ptab('map',this)">🗺 Karte</button>
+  <button onclick="ptab('side',this)">📋 Infos</button>
 </div>
 
 <div class="main">
 
-  <!-- MAP PANE -->
-  <div class="pane-map" id="pane-map">
+<!-- MAP PANE -->
+<div class="pane-map" id="pane-map">
 
-    <!-- TOOLBAR -->
-    <div class="toolbar">
-      <span class="tb-lbl">Fz:</span>
-      <div class="chip" onclick="startPlace('PKW')"><div class="dot" style="background:#2563eb"></div>PKW</div>
-      <div class="chip" onclick="startPlace('LKW')"><div class="dot" style="background:#dc2626"></div>LKW</div>
-      <div class="chip" onclick="startPlace('Zug')"><div class="dot" style="background:#ea580c"></div>Zug</div>
-      <div class="chip" onclick="startPlace('Krad')"><div class="dot" style="background:#ca8a04"></div>Krad</div>
-      <div class="chip" onclick="startPlace('Rad')"><div class="dot" style="background:#16a34a"></div>Rad</div>
-      <div class="chip" onclick="startPlace('Bus')"><div class="dot" style="background:#7c3aed"></div>Bus</div>
-      <div class="chip" onclick="startPlace('Fußg.')"><div class="dot" style="background:#6b7280"></div>Fußg.</div>
+  <div class="tb">
+    <span class="tbl">Fz:</span>
+    <div class="chip" id="chip-PKW" onclick="startPlace('PKW')"><div class="dot" style="background:#2563eb"></div>PKW</div>
+    <div class="chip" id="chip-LKW" onclick="startPlace('LKW')"><div class="dot" style="background:#dc2626"></div>LKW</div>
+    <div class="chip" id="chip-Zug" onclick="startPlace('Zug')"><div class="dot" style="background:#ea580c"></div>Zug</div>
+    <div class="chip" id="chip-Krad" onclick="startPlace('Krad')"><div class="dot" style="background:#ca8a04"></div>Krad</div>
+    <div class="chip" id="chip-Rad" onclick="startPlace('Rad')"><div class="dot" style="background:#16a34a"></div>Rad</div>
+    <div class="chip" id="chip-Bus" onclick="startPlace('Bus')"><div class="dot" style="background:#7c3aed"></div>Bus</div>
+    <div class="chip" id="chip-Fuss" onclick="startPlace('Fuss')"><div class="dot" style="background:#6b7280"></div>Fußg.</div>
 
-      <div class="sep"></div>
-      <span class="tb-lbl">VZ:</span>
+    <div class="tsep"></div>
+    <span class="tbl">VZ:</span>
 
-      <!-- VZ 205 – Vorfahrt gewähren: umgekehrtes Dreieck, weiß, roter Rand -->
-      <div class="sign-chip" onclick="startSign('205')" title="205 – Vorfahrt gewähren">
-        <svg viewBox="0 0 40 36"><polygon points="20,34 2,3 38,3" fill="white" stroke="#cc0000" stroke-width="5" stroke-linejoin="round"/></svg>
-      </div>
-
-      <!-- VZ 206 – STOP -->
-      <div class="sign-chip" onclick="startSign('206')" title="206 – STOP">
-        <svg viewBox="0 0 40 40"><polygon points="13,2 27,2 38,13 38,27 27,38 13,38 2,27 2,13" fill="#cc0000" stroke="white" stroke-width="2"/><text x="20" y="24" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="Arial,sans-serif">STOP</text></svg>
-      </div>
-
-      <!-- VZ 301 – Vorfahrt: weißes Dreieck spitz nach oben, roter Rand, Kreuzungspiktogramm -->
-      <div class="sign-chip" onclick="startSign('301')" title="301 – Vorfahrt">
-        <svg viewBox="0 0 44 40">
-          <polygon points="22,2 42,37 2,37" fill="white" stroke="#cc0000" stroke-width="4" stroke-linejoin="round"/>
-          <!-- Kreuzungspiktogramm: vertikale Hauptstraße durchgehend, horizontale Nebenstraße gestrichelt -->
-          <rect x="19.5" y="12" width="5" height="20" fill="#222"/>
-          <rect x="10" y="23" width="7" height="4" fill="#222"/>
-          <rect x="27" y="23" width="7" height="4" fill="#222"/>
-          <polygon points="22,10 19,15 25,15" fill="#222"/>
-        </svg>
-      </div>
-
-      <!-- VZ 306 – Vorfahrtstraße: weiße Raute, schwarzer Rand, gelbe Raute innen -->
-      <div class="sign-chip" onclick="startSign('306')" title="306 – Vorfahrtstraße">
-        <svg viewBox="0 0 40 40">
-          <rect x="2" y="2" width="36" height="36" rx="3" fill="white" stroke="#333" stroke-width="2" transform="rotate(45 20 20)"/>
-          <rect x="8" y="8" width="24" height="24" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/>
-        </svg>
-      </div>
-
-      <!-- VZ 306 + Zusatz abknickende Vorfahrt -->
-      <div class="sign-chip" onclick="startSign('306-abbieg')" title="306 + abknickende Vorfahrt">
-        <svg viewBox="0 0 40 40">
-          <rect x="1" y="1" width="38" height="38" rx="4" fill="white" stroke="#333" stroke-width="2"/>
-          <!-- Hauptstraße biegt links, Nebenstraße von rechts -->
-          <path d="M20,36 L20,20 Q20,12 13,8" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="21" y="19" width="14" height="4" fill="#222" rx="1"/>
-          <line x1="13" y1="8" x2="9" y2="3" stroke="#222" stroke-width="5" stroke-linecap="round"/>
-        </svg>
-      </div>
-
-      <!-- VZ 307 – Ende Vorfahrtstraße: durchgestrichene Raute -->
-      <div class="sign-chip" onclick="startSign('307')" title="307 – Ende Vorfahrtstraße">
-        <svg viewBox="0 0 40 40">
-          <rect x="2" y="2" width="36" height="36" rx="3" fill="white" stroke="#333" stroke-width="2" transform="rotate(45 20 20)"/>
-          <rect x="8" y="8" width="24" height="24" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/>
-          <line x1="6" y1="6" x2="34" y2="34" stroke="#333" stroke-width="3" stroke-linecap="round"/>
-        </svg>
-      </div>
-
-      <!-- VZ 101 – Gefahrstelle -->
-      <div class="sign-chip" onclick="startSign('101')" title="101 – Gefahrstelle">
-        <svg viewBox="0 0 40 38"><polygon points="20,2 38,36 2,36" fill="white" stroke="#cc0000" stroke-width="4" stroke-linejoin="round"/><text x="20" y="31" text-anchor="middle" font-size="19" font-weight="bold" fill="#cc0000" font-family="serif">!</text></svg>
-      </div>
-
-      <!-- VZ 209 – Vorgeschriebene Fahrtrichtung rechts -->
-      <div class="sign-chip" onclick="startSign('209')" title="209 – Fahrtrichtung rechts">
-        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2"/><path d="M13,20 L21,11 L21,17 L28,17 L28,23 L21,23 L21,29 Z" fill="white"/></svg>
-      </div>
-
-      <!-- VZ 215 – Kreisverkehr -->
-      <div class="sign-chip" onclick="startSign('215')" title="215 – Kreisverkehr">
-        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2"/><path d="M20,9 A11,11 0 1,1 9,20" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"/><polygon points="20,6 14,13 26,13" fill="white"/></svg>
-      </div>
-
-      <!-- VZ 250 – Verbot für Kfz -->
-      <div class="sign-chip" onclick="startSign('250')" title="250 – Verbot für Kfz">
-        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="white" stroke="#cc0000" stroke-width="4"/><rect x="9" y="17" width="22" height="6" rx="2" fill="#cc0000"/></svg>
-      </div>
-
-      <div class="sep"></div>
-
-      <!-- Layer toggle -->
-      <div class="layer-toggle">
-        <button class="layer-btn active" id="btn-osm" onclick="setLayer('osm')">Karte</button>
-        <button class="layer-btn" id="btn-sat" onclick="setLayer('sat')">Satellit</button>
-      </div>
-
-      <div class="chip" onclick="clearAll()" style="border-color:#6b4040;color:#c08080">Leeren</div>
-
-      <!-- Autocomplete search -->
-      <div class="ac-wrap">
-        <input class="ac-input" id="ac-inp" placeholder="Adresse / Kreuzung…" autocomplete="off"
-               oninput="onAcInput()" onkeydown="onAcKey(event)">
-        <div class="ac-spin" id="ac-spin"></div>
-        <ul class="ac-list" id="ac-list"></ul>
-      </div>
+    <!-- VZ 205: umgekehrtes Dreieck, rot, innen weiß -->
+    <div class="csign" onclick="startSign('205')" data-tip="205 – Vorfahrt gewähren">
+      <svg viewBox="0 0 40 36"><polygon points="20,34 1,3 39,3" fill="white" stroke="#cc0000" stroke-width="5" stroke-linejoin="round"/></svg>
+    </div>
+    <!-- VZ 206: STOP -->
+    <div class="csign" onclick="startSign('206')" data-tip="206 – STOP">
+      <svg viewBox="0 0 40 40"><polygon points="13,2 27,2 38,13 38,27 27,38 13,38 2,27 2,13" fill="#cc0000" stroke="white" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="9.5" font-weight="bold" fill="white" font-family="Arial">STOP</text></svg>
+    </div>
+    <!-- VZ 301: weißes Dreieck, roter Rand, Kreuzungspiktogramm -->
+    <div class="csign" onclick="startSign('301')" data-tip="301 – Vorfahrt">
+      <svg viewBox="0 0 44 40"><polygon points="22,2 42,38 2,38" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><rect x="20" y="14" width="4" height="18" fill="#222"/><rect x="11" y="25" width="8" height="3.5" fill="#222"/><rect x="25" y="25" width="8" height="3.5" fill="#222"/><polygon points="22,11 19.5,16 24.5,16" fill="#222"/></svg>
+    </div>
+    <!-- VZ 306: Vorfahrtstraße -->
+    <div class="csign" onclick="startSign('306')" data-tip="306 – Vorfahrtstraße">
+      <svg viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="white" stroke="#444" stroke-width="2" transform="rotate(45 20 20)"/><rect x="9" y="9" width="22" height="22" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/></svg>
+    </div>
+    <!-- VZ 306 abknickend -->
+    <div class="csign" onclick="startSign('306k')" data-tip="306 + abknickende Vorfahrt">
+      <svg viewBox="0 0 40 40"><rect x="1" y="1" width="38" height="38" rx="4" fill="white" stroke="#444" stroke-width="2"/><path d="M20,37 L20,20 Q20,11 13,7" stroke="#222" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="21" y="19" width="14" height="4.5" fill="#222" rx="1.5"/><line x1="13" y1="7" x2="8.5" y2="2" stroke="#222" stroke-width="5.5" stroke-linecap="round"/></svg>
+    </div>
+    <!-- VZ 307: Ende Vorfahrtstraße -->
+    <div class="csign" onclick="startSign('307')" data-tip="307 – Ende Vorfahrtstraße">
+      <svg viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="white" stroke="#444" stroke-width="2" transform="rotate(45 20 20)"/><rect x="9" y="9" width="22" height="22" rx="2" fill="#f5c400" transform="rotate(45 20 20)"/><line x1="7" y1="7" x2="33" y2="33" stroke="#666" stroke-width="3" stroke-linecap="round"/></svg>
+    </div>
+    <!-- VZ 101: Gefahrstelle -->
+    <div class="csign" onclick="startSign('101')" data-tip="101 – Gefahrstelle">
+      <svg viewBox="0 0 40 36"><polygon points="20,2 38,34 2,34" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><text x="20" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#cc0000" font-family="serif">!</text></svg>
+    </div>
+    <!-- VZ 209: Fahrtrichtung rechts -->
+    <div class="csign" onclick="startSign('209')" data-tip="209 – Fahrtrichtung rechts">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M13,20 L21,11 L21,17 L28,17 L28,23 L21,23 L21,29 Z" fill="white"/></svg>
+    </div>
+    <!-- VZ 215: Kreisverkehr -->
+    <div class="csign" onclick="startSign('215')" data-tip="215 – Kreisverkehr">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M20,9 A11,11 0 1,1 9,20" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/><polygon points="20,6 14,13 26,13" fill="white"/></svg>
+    </div>
+    <!-- VZ 250: Verbot -->
+    <div class="csign" onclick="startSign('250')" data-tip="250 – Verbot für Kfz">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="white" stroke="#cc0000" stroke-width="4.5"/><rect x="9" y="17" width="22" height="6" rx="2" fill="#cc0000"/></svg>
     </div>
 
-    <!-- MODE BAR -->
-    <div class="mode-bar" id="mode-bar">
-      <span class="mode-txt" id="mode-txt">MODUS</span>
-      <button class="mode-cancel" onclick="cancelMode()">✕ Abbrechen</button>
+    <div class="tsep"></div>
+
+    <!-- DRAW PATH BUTTON -->
+    <div class="chip" id="chip-draw" onclick="startDrawMode()">✏ Fahrweg</div>
+
+    <div class="tsep"></div>
+
+    <div class="ltog">
+      <button class="on" id="lb-osm" onclick="setLayer('osm')">Karte</button>
+      <button id="lb-sat" onclick="setLayer('sat')">Satellit</button>
     </div>
 
-    <div id="map"></div>
+    <div class="chip" onclick="clearAll()" style="border-color:#6b3030;color:#b08080;margin-left:2px">Leeren</div>
 
-    <div class="coord-bar">
-      <span class="coord-txt">PIN: <span id="pin-disp">–</span></span>
-      <span class="coord-txt">ZOOM: <span id="zoom-disp">–</span></span>
-      <button class="sv-btn-sm" id="sv-btn" onclick="openSV()" disabled>📸 StreetView</button>
+    <div class="ac-wrap">
+      <input class="ac-inp" id="ac-inp" placeholder="Adresse / Kreuzung…" autocomplete="off"
+        oninput="acInput()" onkeydown="acKey(event)">
+      <div class="ac-spin" id="ac-spin"></div>
+      <ul class="ac-list" id="ac-list"></ul>
     </div>
   </div>
 
-  <!-- SIDEBAR -->
-  <div class="pane-sidebar" id="pane-sidebar">
-    <div class="sb-tabs">
-      <button class="sb-tab active" onclick="switchSbTab('sv',this)">📸 StreetView</button>
-      <button class="sb-tab" onclick="switchSbTab('notes',this)">📋 Notizen</button>
-    </div>
+  <!-- MODE BAR -->
+  <div class="modebar" id="modebar">
+    <span class="modetxt" id="modetxt">MODUS</span>
+    <div id="mbtn-wrap" style="margin-left:auto;display:flex;gap:6px"></div>
+  </div>
 
-    <!-- SV PANEL -->
-    <div class="sb-panel active" id="sp-sv">
-      <div class="sv-panel">
-        <div class="sv-card">
-          <div class="sv-hdr">STANDORT – PIN</div>
-          <div class="sv-body">
-            <div class="sv-coords" id="sv-coords">Noch kein Pin gesetzt.<br>Auf die Karte tippen → Pin setzen.</div>
-          </div>
-        </div>
-        <button class="sv-open" id="sv-open" onclick="openSV()" disabled>📸 In Google StreetView öffnen →</button>
-        <div class="sv-tip">Pin auf Kreuzung setzen → StreetView öffnet exakt diesen Standort in Google Maps (neuer Tab).</div>
-        <div class="sv-card">
-          <div class="sv-hdr">BEDIENUNG</div>
-          <div class="sv-body">
-            <b>Fahrzeug platzieren:</b> Chip antippen → Karte antippen<br>
-            <b>Verschieben:</b> Marker ziehen<br>
-            <b>Drehen (45°):</b> ↻ antippen<br>
-            <b>Fahrweg zeichnen:</b> ▶ antippen → Pfad auf Karte zeichnen → Fahrzeug fährt ab<br>
-            <b>LKW-Zug:</b> Zugmaschine ziehen → Anhänger folgt automatisch<br>
-            <b>Zeichen:</b> VZ-Chip → Karte antippen<br>
-            <b>Löschen:</b> ✕ beim Hover/Tap
-          </div>
+  <div id="map"></div>
+
+  <!-- SVG DRAW OVERLAY - lives inside pane-map, positioned over map -->
+  <svg id="draw-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+  <!-- VEHICLE SELECT PANEL for drive -->
+  <div class="dv-panel" id="dv-panel">
+    <div class="dv-title">FAHRZEUG WÄHLEN → fährt Weg ab</div>
+    <div class="dv-list" id="dv-list"></div>
+    <button class="dv-cancel" onclick="closeDvPanel()">Abbrechen</button>
+  </div>
+
+  <div class="cbar">
+    <span class="ctxt">PIN: <span id="pin-disp">–</span></span>
+    <span class="ctxt">Z: <span id="zoom-disp">–</span></span>
+    <button class="svbtn" id="sv-btn" onclick="openSV()" disabled>📸 StreetView</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="pane-side" id="pane-side">
+  <div class="stabs">
+    <button class="stab on" onclick="stab('sv',this)">📸 StreetView</button>
+    <button class="stab" onclick="stab('notes',this)">📋 Notizen</button>
+  </div>
+
+  <div class="spanel on" id="sp-sv">
+    <div class="sv-wrap">
+      <div class="sv-card">
+        <div class="sv-hdr">STANDORT – PIN</div>
+        <div class="sv-body"><div class="sv-coords" id="sv-coords">Noch kein Pin gesetzt.<br>Karte antippen → Pin setzen.</div></div>
+      </div>
+      <button class="sv-btn" id="sv-open" onclick="openSV()" disabled>📸 In Google StreetView öffnen →</button>
+      <div class="sv-tip">Pin auf Kreuzung setzen → StreetView öffnet exakt diesen Standort in Google Maps.</div>
+      <div class="sv-card">
+        <div class="sv-hdr">BEDIENUNG</div>
+        <div class="sv-body">
+          <b>Fahrzeug/VZ platzieren:</b> Chip antippen → Karte antippen<br>
+          <b>Verschieben:</b> Marker ziehen<br>
+          <b>Drehen:</b> ↻ antippen (45°-Schritte)<br>
+          <b>Fahrweg:</b> ✏ Fahrweg → Weg zeichnen → Fahrzeug wählen → fährt ab<br>
+          <b>LKW-Zug:</b> Zugmaschine ziehen → Anhänger folgt<br>
+          <b>Pin setzen:</b> Leere Karte antippen<br>
+          <b>Löschen:</b> ✕ beim Hover/Tap
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- NOTES PANEL -->
-    <div class="sb-panel" id="sp-notes">
-      <div class="ntb">
-        <button class="fb active" onclick="filterN('alle',this)">Alle</button>
-        <button class="fb" onclick="filterN('hoch',this)">⚠ Wichtig</button>
-        <button class="fb" onclick="filterN('mittel',this)">● Mittel</button>
-        <button class="fb" onclick="filterN('info',this)">✓ Info</button>
-        <button class="fb" onclick="filterN('allg',this)">📌 Allg.</button>
-        <button class="fb" onclick="exportN()" style="margin-left:auto">↓ Export</button>
-      </div>
-      <div class="nlist" id="nlist"></div>
-      <div class="ncompose">
-        <textarea class="nta" id="nta" placeholder="Notiz… (Strg+Enter)" rows="3"></textarea>
-        <div class="nrow">
-          <select class="nprio" id="nprio">
-            <option value="allg">📌 Allgemein</option>
-            <option value="info">✓ Info</option>
-            <option value="mittel">● Mittel</option>
-            <option value="hoch">⚠ Wichtig</option>
-          </select>
-          <button class="nadd" onclick="addNote()">+ Notiz</button>
-        </div>
+  <div class="spanel" id="sp-notes">
+    <div class="ntb">
+      <button class="fb on" onclick="nfilt('alle',this)">Alle</button>
+      <button class="fb" onclick="nfilt('hoch',this)">⚠</button>
+      <button class="fb" onclick="nfilt('mittel',this)">●</button>
+      <button class="fb" onclick="nfilt('info',this)">✓</button>
+      <button class="fb" onclick="nfilt('allg',this)">📌</button>
+      <button class="fb" onclick="exportN()" style="margin-left:auto">↓</button>
+    </div>
+    <div class="nlist" id="nlist"></div>
+    <div class="ncompose">
+      <textarea class="nta" id="nta" placeholder="Notiz… (Strg+Enter)" rows="3"></textarea>
+      <div class="nrow">
+        <select class="nprio" id="nprio">
+          <option value="allg">📌 Allgemein</option>
+          <option value="info">✓ Info</option>
+          <option value="mittel">● Mittel</option>
+          <option value="hoch">⚠ Wichtig</option>
+        </select>
+        <button class="nadd" onclick="addN()">+ Notiz</button>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-// ═══════════════════════════════════════════════════════
-// MAP INIT
-// ═══════════════════════════════════════════════════════
-const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© OpenStreetMap',maxZoom:21
-});
-const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
-  attribution:'© Esri Satellite',maxZoom:20
-});
+</div><!-- /main -->
 
-const map = L.map('map',{center:[52.3906,13.0645],zoom:17,zoomControl:true,attributionControl:true});
-osmLayer.addTo(map);
-let currentLayer = 'osm';
+<script>
+// ═══════════════════════ MAP ═══════════════════════
+const osmTile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:21});
+const satTile = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:20});
+const map = L.map('map',{center:[52.3906,13.0645],zoom:17,zoomControl:true});
+osmTile.addTo(map);
+let curLayer='osm';
 
 function setLayer(l){
-  if(l===currentLayer) return;
-  if(l==='sat'){map.removeLayer(osmLayer);satLayer.addTo(map);}
-  else{map.removeLayer(satLayer);osmLayer.addTo(map);}
-  currentLayer=l;
-  document.getElementById('btn-osm').classList.toggle('active',l==='osm');
-  document.getElementById('btn-sat').classList.toggle('active',l==='sat');
-  document.getElementById('pill-mode').textContent=l==='sat'?'SAT':'OSM';
+  if(l===curLayer)return;
+  if(l==='sat'){map.removeLayer(osmTile);satTile.addTo(map);}
+  else{map.removeLayer(satTile);osmTile.addTo(map);}
+  curLayer=l;
+  document.getElementById('lb-osm').classList.toggle('on',l==='osm');
+  document.getElementById('lb-sat').classList.toggle('on',l==='sat');
+  document.getElementById('hp-layer').textContent=l==='sat'?'SAT':'OSM';
 }
 
-map.on('zoom',()=>{document.getElementById('zoom-disp').textContent=map.getZoom();});
+map.on('zoom',()=>document.getElementById('zoom-disp').textContent=map.getZoom());
 document.getElementById('zoom-disp').textContent=map.getZoom();
 
-// ═══════════════════════════════════════════════════════
-// PIN
-// ═══════════════════════════════════════════════════════
-let pinLL=null, pinMarker=null;
-const pinIcon=L.divIcon({html:`<svg width="22" height="34" viewBox="0 0 22 34"><path d="M11 0C4.9 0 0 4.9 0 11c0 8.3 11 23 11 23S22 19.3 22 11C22 4.9 17.1 0 11 0z" fill="#c8401a" stroke="white" stroke-width="1.5"/><circle cx="11" cy="11" r="4.5" fill="white"/></svg>`,iconSize:[22,34],iconAnchor:[11,34],className:''});
+// ═══════════════════════ PIN ═══════════════════════
+let pinLL=null, pinMk=null;
+const pinIcon=L.divIcon({html:`<svg width="20" height="32" viewBox="0 0 20 32"><path d="M10 0C4.5 0 0 4.5 0 10c0 7.5 10 22 10 22S20 17.5 20 10C20 4.5 15.5 0 10 0z" fill="#c8401a" stroke="white" stroke-width="1.5"/><circle cx="10" cy="10" r="4" fill="white"/></svg>`,iconSize:[20,32],iconAnchor:[10,32],className:''});
 
 map.on('click',e=>{
-  if(placeMode){placeVeh(e.latlng);return;}
-  if(signMode){placeSign(e.latlng);return;}
-  if(drawMode){return;}
-  if(e.originalEvent._fromMarker){return;} // block click-through from marker
+  if(placeMode||signMode||drawMode)return;
+  // block if we just finished a marker drag
+  if(e.originalEvent._noPin)return;
   setPin(e.latlng);
 });
 
 function setPin(ll){
   pinLL=ll;
-  if(pinMarker) pinMarker.setLatLng(ll);
-  else{
-    pinMarker=L.marker(ll,{icon:pinIcon,draggable:true,zIndexOffset:5000}).addTo(map);
-    pinMarker.on('dragend',e=>{pinLL=e.target.getLatLng();updatePinUI();});
-  }
+  if(pinMk)pinMk.setLatLng(ll);
+  else{pinMk=L.marker(ll,{icon:pinIcon,draggable:true,zIndexOffset:5000}).addTo(map);pinMk.on('dragend',e=>{pinLL=e.target.getLatLng();updatePinUI();});}
   updatePinUI();
 }
 function updatePinUI(){
-  if(!pinLL) return;
+  if(!pinLL)return;
   const t=pinLL.lat.toFixed(5)+', '+pinLL.lng.toFixed(5);
   document.getElementById('pin-disp').textContent=t;
   document.getElementById('sv-coords').textContent='Lat: '+pinLL.lat.toFixed(6)+'\nLng: '+pinLL.lng.toFixed(6);
   document.getElementById('sv-btn').disabled=false;
   document.getElementById('sv-open').disabled=false;
 }
-function openSV(){
-  if(!pinLL) return;
-  window.open(`https://www.google.com/maps?layer=c&cbll=${pinLL.lat},${pinLL.lng}`,'_blank');
-}
+function openSV(){if(pinLL)window.open(`https://www.google.com/maps?layer=c&cbll=${pinLL.lat},${pinLL.lng}`,'_blank');}
 
-// ═══════════════════════════════════════════════════════
-// MODE MANAGEMENT
-// ═══════════════════════════════════════════════════════
-let placeMode=null, signMode=null, drawMode=false, activeVeh=null;
+// ═══════════════════════ MODE ═══════════════════════
+let placeMode=null,signMode=null,drawMode=false;
 
-function setModeBar(txt){
-  const bar=document.getElementById('mode-bar');
-  if(txt){bar.classList.add('on');document.getElementById('mode-txt').textContent=txt;}
-  else bar.classList.remove('on');
-  map.getContainer().style.cursor=txt?'crosshair':'';
+function setMode(txt,btns){
+  const bar=document.getElementById('modebar');
+  const wrap=document.getElementById('mbtn-wrap');
+  if(!txt){bar.classList.remove('on');return;}
+  document.getElementById('modetxt').textContent=txt;
+  wrap.innerHTML=btns||'';
+  bar.classList.add('on');
+  map.getContainer().style.cursor='crosshair';
 }
-
-function cancelMode(){
-  placeMode=null; signMode=null;
-  if(drawMode) endDraw(false);
-  setModeBar(null);
-  document.querySelectorAll('.chip.mode-on,.sign-chip.mode-on').forEach(c=>c.classList.remove('mode-on'));
+function clearMode(){
+  placeMode=null;signMode=null;
+  document.querySelectorAll('.chip.on,.csign.on').forEach(c=>c.classList.remove('on'));
+  map.getContainer().style.cursor='';
+  setMode(null);
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape') cancelMode();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){clearMode();if(drawMode)cancelDraw();}});
 
 function startPlace(type){
-  cancelMode();
+  clearMode();cancelDraw();
   placeMode=type;
-  setModeBar('PLATZIEREN: '+type+' — Karte antippen');
+  document.getElementById('chip-'+type)?.classList.add('on');
+  setMode('PLATZIEREN: '+type+' — Karte antippen',`<button class="mbtn" onclick="clearMode()">✕ Abbrechen</button>`);
 }
 function startSign(code){
-  cancelMode();
+  clearMode();cancelDraw();
   signMode=code;
-  setModeBar('VZ '+code+' — Karte antippen');
+  setMode('VZ '+code+' — Karte antippen',`<button class="mbtn" onclick="clearMode()">✕ Abbrechen</button>`);
 }
 
-// ═══════════════════════════════════════════════════════
-// VEHICLES
-// ═══════════════════════════════════════════════════════
-let vehs=[], vId=0;
-
+// ═══════════════════════ VEHICLES ═══════════════════════
+let vehs=[],vId=0;
 const VCFG={
-  PKW:   {w:20,h:44,color:'#2563eb',label:'PKW'},
-  LKW:   {w:24,h:68,color:'#dc2626',label:'LKW'},
-  Zug:   {w:24,h:68,color:'#ea580c',label:'Zug'},
-  Krad:  {w:12,h:34,color:'#ca8a04',label:'Krad'},
-  Rad:   {w:10,h:28,color:'#16a34a',label:'Rad'},
-  Bus:   {w:26,h:76,color:'#7c3aed',label:'Bus'},
-  'Fußg.':{w:16,h:16,color:'#6b7280',label:'Fußg.'},
+  PKW:  {w:18,h:40,color:'#2563eb',label:'PKW'},
+  LKW:  {w:22,h:58,color:'#dc2626',label:'LKW'},
+  Zug:  {w:22,h:58,color:'#ea580c',label:'Zug'},
+  Krad: {w:11,h:30,color:'#ca8a04',label:'Krad'},
+  Rad:  {w:9,h:24,color:'#16a34a',label:'Rad'},
+  Bus:  {w:24,h:68,color:'#7c3aed',label:'Bus'},
+  Fuss: {w:14,h:14,color:'#6b7280',label:'Fußg.'},
 };
 
-function placeVeh(ll){
-  const type=placeMode; cancelMode();
-  if(type==='Zug'){createZug(ll,0);return;}
-  createVeh(type,ll,0);
-}
-
-// ── Pointer-event based marker drag (works on tablet + stylus) ──
-function makeMarkerDraggable(marker, el){
-  let dragging=false, startX, startY, startLL;
-
-  el.addEventListener('pointerdown', e=>{
-    // Ignore taps on control buttons
-    if(e.target.closest('.vm-ctrl')) return;
-    e.stopPropagation();
-    e.preventDefault();
-    dragging=true;
-    startX=e.clientX; startY=e.clientY;
-    startLL=marker.getLatLng();
-    el.setPointerCapture(e.pointerId);
-    el.style.cursor='grabbing';
-    // Mark event so map click handler ignores it
-    el._pointerMoved=false;
-  },{passive:false});
-
-  el.addEventListener('pointermove', e=>{
-    if(!dragging) return;
-    e.stopPropagation();
-    const dx=e.clientX-startX, dy=e.clientY-startY;
-    if(Math.abs(dx)+Math.abs(dy)>4) el._pointerMoved=true;
-    // Convert pixel delta to latlng delta
-    const startPt=map.latLngToContainerPoint(startLL);
-    const newPt=L.point(startPt.x+dx, startPt.y+dy);
-    const newLL=map.containerPointToLatLng(newPt);
-    marker.setLatLng(newLL);
-    // Update trailer if this is a Zug
-    const vData=vehs.find(v=>v.marker===marker);
-    if(vData?.trailer) updateTrailer(vData,newLL);
-  },{passive:true});
-
-  el.addEventListener('pointerup', e=>{
-    if(!dragging) return;
-    dragging=false;
-    el.style.cursor='grab';
-    if(!el._pointerMoved){
-      // It was a tap not a drag – let map click fire normally... but we
-      // need to block the pin-set. We signal via originalEvent flag.
-    }
-  });
-
-  el.addEventListener('click', e=>{
-    if(el._pointerMoved){
-      e.stopPropagation(); // was a drag, not a tap – block map click
-    }
-    el._pointerMoved=false;
-  },{capture:true});
-}
+map.on('click',e=>{
+  if(e.originalEvent._noPin)return;
+  if(placeMode){createVeh(placeMode,e.latlng,0);clearMode();return;}
+  if(signMode){createSign(signMode,e.latlng);clearMode();return;}
+});
 
 function createVeh(type,ll,angle){
+  if(type==='Zug'){createZug(ll,angle);return;}
   const cfg=VCFG[type]||VCFG.PKW;
   const id=++vId;
-  const svgHtml=buildSVG(type,cfg.color,cfg.w,cfg.h);
-  const iW=cfg.w+24, iH=cfg.h+44;
-
-  const html=`<div class="vm" id="vm${id}" data-angle="${angle}" data-type="${type}">
-    <div class="vm-ctrl">
-      <button class="vm-btn vm-rot" ontouchend="rotVeh(${id})" onclick="rotVeh(${id})">↻</button>
-      <button class="vm-btn vm-go" ontouchend="selectForDrive(${id})" onclick="selectForDrive(${id})">▶</button>
-      <button class="vm-btn vm-del" ontouchend="delVeh(${id})" onclick="delVeh(${id})">✕</button>
+  const iW=cfg.w+24,iH=cfg.h+38;
+  const html=`<div class="vm" id="vm${id}" data-id="${id}">
+    <div class="vmctrl">
+      <button class="vbtn rot" onclick="rotVeh(${id})">↻</button>
+      <button class="vbtn del" onclick="delVeh(${id})">✕ Löschen</button>
     </div>
-    ${svgHtml}
-    <div class="vm-lbl">${cfg.label}</div>
+    ${svgVeh(type,cfg.color,cfg.w,cfg.h)}
+    <div class="vlbl">${cfg.label}</div>
   </div>`;
-
-  const icon=L.divIcon({html,iconSize:[iW,iH],iconAnchor:[iW/2,iH/2-9],className:''});
-  const marker=L.marker(ll,{icon,draggable:false,zIndexOffset:1000}).addTo(map);
-
-  marker.on('add',()=>{
-    const el=marker.getElement();
-    if(el){
-      const vm=el.querySelector('.vm');
-      if(vm) vm.style.transform=`rotate(${angle}deg)`;
-      makeMarkerDraggable(marker,el);
-    }
+  const icon=L.divIcon({html,iconSize:[iW,iH],iconAnchor:[iW/2,iH/2-7],className:''});
+  const mk=L.marker(ll,{icon,draggable:false,zIndexOffset:1000,interactive:false}).addTo(map);
+  const vd={id,type,mk,angle,color:cfg.color,label:cfg.label,trailer:null,pathLine:null};
+  vehs.push(vd);
+  mk.on('add',()=>{
+    const el=mk.getElement();
+    if(!el)return;
+    const vm=el.querySelector('.vm');
+    if(vm)vm.style.transform=`rotate(${angle}deg)`;
+    attachDrag(mk,el,vd);
   });
-
-  vehs.push({id,type,marker,angle,trailer:null,path:[]});
-  updateVehPill();
+  updateVehUI();
   return id;
 }
+
+// ── LKW-ZUG ──
+// Pixel-per-meter at zoom 17 ≈ 0.6px/m at equator, but we use latLng offset
+// A realistic truck = ~6m, trailer = ~13m, coupling distance ~1.5m
+// At zoom 17, 1 meter ≈ 0.00001 degrees lat ≈ 0.000014 degrees lng
+// We use a FIXED pixel offset converted to latLng for the trailer
+const TRAILER_DIST_PX = 68; // pixels at current zoom – roughly 1 truck length behind coupling
 
 function createZug(ll,angle){
   const id=++vId;
   const cfg=VCFG.LKW;
-  const iW=cfg.w+24, iH=cfg.h+44;
-  const tractorHtml=`<div class="vm" id="vm${id}" data-angle="${angle}" data-type="Zug">
-    <div class="vm-ctrl">
-      <button class="vm-btn vm-rot" ontouchend="rotVeh(${id})" onclick="rotVeh(${id})">↻</button>
-      <button class="vm-btn vm-go" ontouchend="selectForDrive(${id})" onclick="selectForDrive(${id})">▶</button>
-      <button class="vm-btn vm-del" ontouchend="delVeh(${id})" onclick="delVeh(${id})">✕</button>
+  const iW=cfg.w+24,iH=cfg.h+38;
+
+  // Tractor
+  const html=`<div class="vm" id="vm${id}" data-id="${id}">
+    <div class="vmctrl">
+      <button class="vbtn rot" onclick="rotVeh(${id})">↻</button>
+      <button class="vbtn del" onclick="delVeh(${id})">✕ Löschen</button>
     </div>
-    ${buildSVG('LKW',cfg.color,cfg.w,cfg.h)}
-    <div class="vm-lbl">Zug (ZM)</div>
+    ${svgVeh('LKW',cfg.color,cfg.w,cfg.h)}
+    <div class="vlbl">Zug (ZM)</div>
   </div>`;
-  const tIcon=L.divIcon({html:tractorHtml,iconSize:[iW,iH],iconAnchor:[iW/2,iH/2-9],className:''});
-  const tMarker=L.marker(ll,{icon:tIcon,draggable:false,zIndexOffset:1000}).addTo(map);
-  tMarker.on('add',()=>{const el=tMarker.getElement();if(el)makeMarkerDraggable(tMarker,el);});
+  const icon=L.divIcon({html,iconSize:[iW,iH],iconAnchor:[iW/2,iH/2-7],className:''});
+  const mk=L.marker(ll,{icon,draggable:false,zIndexOffset:1000,interactive:false}).addTo(map);
 
-  const trOff=calcTrailerPos(ll,angle,0.00011);
+  // Trailer – placed directly behind tractor in screen pixels
   const trId=id*1000+1;
-  const trHtml=`<div class="vm" id="vm${trId}" data-angle="${angle}" data-type="Anhänger">
-    ${buildTrailerSVG('#ea580c',24,60)}
-    <div class="vm-lbl">Anhänger</div>
+  const trW=22,trH=52;
+  const trIW=trW+16,trIH=trH+24;
+  const trHtml=`<div class="vm" id="vm${trId}" style="transform:rotate(${angle}deg)">
+    ${svgTrailer('#ea580c',trW,trH)}
+    <div class="vlbl">Anhänger</div>
   </div>`;
-  const trIcon=L.divIcon({html:trHtml,iconSize:[40,70],iconAnchor:[20,35],className:''});
-  const trMarker=L.marker(trOff,{icon:trIcon,draggable:false,zIndexOffset:999}).addTo(map);
-  const jointLine=L.polyline([ll,trOff],{color:'#ea580c',weight:3,opacity:.65,dashArray:'5,4'}).addTo(map);
+  const trIcon=L.divIcon({html:trHtml,iconSize:[trIW,trIH],iconAnchor:[trIW/2,trIH/2-5],className:''});
+  const trLL=trailerLL(ll,angle);
+  const trMk=L.marker(trLL,{icon:trIcon,draggable:false,zIndexOffset:999,interactive:false}).addTo(map);
 
-  const vData={id,type:'Zug',marker:tMarker,angle,trailer:{marker:trMarker,line:jointLine,angle,prevLL:ll},path:[]};
-  vehs.push(vData);
+  // Coupling line
+  const line=L.polyline([ll,trLL],{color:'#ea580c',weight:3,opacity:.8,dashArray:'4,3'}).addTo(map);
 
-  tMarker.on('drag',e=>updateTrailer(vData,e.target.getLatLng()));
-  updateVehPill();
+  const vd={id,type:'Zug',mk,angle,color:cfg.color,label:'Zug',trailer:{mk:trMk,line,angle,prevLL:ll},pathLine:null};
+  vehs.push(vd);
+  mk.on('add',()=>{
+    const el=mk.getElement();
+    if(!el)return;
+    const vm=el.querySelector('.vm');
+    if(vm)vm.style.transform=`rotate(${angle}deg)`;
+    attachDrag(mk,el,vd);
+  });
+  updateVehUI();
 }
 
-function calcTrailerPos(ll,angleDeg,d){
-  const r=(angleDeg+180)*Math.PI/180;
-  return L.latLng(ll.lat+Math.cos(r)*d, ll.lng+Math.sin(r)*d*1.5);
+// Calculate trailer latLng: offset behind tractor by TRAILER_DIST_PX pixels
+function trailerLL(tractorLL,angleDeg){
+  const pt=map.latLngToContainerPoint(tractorLL);
+  const rad=(angleDeg+180)*Math.PI/180;
+  const offPt=L.point(pt.x+Math.sin(rad)*TRAILER_DIST_PX, pt.y-Math.cos(rad)*TRAILER_DIST_PX);
+  return map.containerPointToLatLng(offPt);
 }
 
-function updateTrailer(v,newLL){
-  const t=v.trailer;
-  const dLat=newLL.lat-t.prevLL.lat, dLng=newLL.lng-t.prevLL.lng;
-  if(Math.abs(dLat)+Math.abs(dLng)<0.0000005) return;
-  const tractorAngle=Math.atan2(dLng,dLat)*180/Math.PI;
-  const trAngle=t.angle+(tractorAngle-t.angle)*0.55;
-  const r=(trAngle+180)*Math.PI/180;
-  const newTrLL=L.latLng(newLL.lat+Math.cos(r)*0.00009,newLL.lng+Math.sin(r)*0.00009*1.5);
-  t.marker.setLatLng(newTrLL);
-  t.line.setLatLngs([newLL,newTrLL]);
-  t.angle=trAngle; t.prevLL=newLL;
-  v.angle=tractorAngle;
-  const el=v.marker.getElement();
-  if(el){const vm=el.querySelector('.vm');if(vm) vm.style.transform=`rotate(${tractorAngle}deg)`;}
-  const tel=t.marker.getElement();
-  if(tel){const vm=tel.querySelector('.vm');if(vm) vm.style.transform=`rotate(${trAngle}deg)`;}
+function updateTrailer(vd,newTractorLL){
+  const t=vd.trailer;
+  const prevPt=map.latLngToContainerPoint(t.prevLL);
+  const newPt=map.latLngToContainerPoint(newTractorLL);
+  const dx=newPt.x-prevPt.x, dy=newPt.y-prevPt.y;
+  if(Math.abs(dx)+Math.abs(dy)<0.5)return;
+
+  // Tractor heading in screen coords (y-axis inverted)
+  const tractorAngle=Math.atan2(dx,-dy)*180/Math.PI;
+
+  // Trailer follows with articulation lag (60% of tractor angle change)
+  const angleDiff=((tractorAngle-t.angle)+540)%360-180;
+  const trAngle=t.angle+angleDiff*0.55;
+
+  // New trailer position: directly behind coupling point
+  const couplingPt=newPt;
+  const rad=(trAngle+180)*Math.PI/180;
+  const trPt=L.point(couplingPt.x+Math.sin(rad)*TRAILER_DIST_PX, couplingPt.y-Math.cos(rad)*TRAILER_DIST_PX);
+  const trLL=map.containerPointToLatLng(trPt);
+
+  t.mk.setLatLng(trLL);
+  t.line.setLatLngs([newTractorLL,trLL]);
+  t.angle=trAngle; t.prevLL=newTractorLL;
+  vd.angle=tractorAngle;
+
+  // Update trailer rotation
+  const trEl=t.mk.getElement()?.querySelector('.vm');
+  if(trEl)trEl.style.transform=`rotate(${trAngle}deg)`;
+}
+
+// ── MARKER DRAG ──
+function attachDrag(mk,el,vd){
+  let dragging=false,startPt,startLL;
+  let hasMoved=false;
+
+  el.style.touchAction='none';
+
+  el.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.vmctrl'))return;
+    e.preventDefault();e.stopPropagation();
+    el.setPointerCapture(e.pointerId);
+    dragging=true;hasMoved=false;
+    startPt=L.point(e.clientX,e.clientY);
+    startLL=mk.getLatLng();
+    el.classList.add('dragging');
+    map.dragging.disable();
+  },{passive:false,capture:true});
+
+  el.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    e.preventDefault();e.stopPropagation();
+    const dx=e.clientX-startPt.x, dy=e.clientY-startPt.y;
+    if(Math.abs(dx)+Math.abs(dy)>3)hasMoved=true;
+    const startContainerPt=map.latLngToContainerPoint(startLL);
+    const newContainerPt=L.point(startContainerPt.x+dx,startContainerPt.y+dy);
+    const newLL=map.containerPointToLatLng(newContainerPt);
+    mk.setLatLng(newLL);
+    if(vd.trailer)updateTrailer(vd,newLL);
+  },{passive:false,capture:true});
+
+  el.addEventListener('pointerup',e=>{
+    if(!dragging)return;
+    e.stopPropagation();
+    dragging=false;
+    el.classList.remove('dragging');
+    map.dragging.enable();
+    // If it was a drag (not tap), prevent map click from setting a pin
+    if(hasMoved)e.nativeEvent?e.nativeEvent._noPin=true:null;
+  },{capture:true});
+
+  // Block click-through after drag
+  el.addEventListener('click',e=>{
+    if(hasMoved){e.stopPropagation();hasMoved=false;}
+  },{capture:true});
 }
 
 function rotVeh(id){
-  const v=vehs.find(x=>x.id===id); if(!v) return;
-  v.angle=(v.angle+45)%360;
-  const el=v.marker.getElement();
-  if(el){const vm=el.querySelector('.vm');if(vm){vm.dataset.angle=v.angle;vm.style.transform=`rotate(${v.angle}deg)`;}}
+  const vd=vehs.find(v=>v.id===id);if(!vd)return;
+  vd.angle=(vd.angle+45)%360;
+  const el=vd.mk.getElement()?.querySelector('.vm');
+  if(el){el.dataset.angle=vd.angle;el.style.transform=`rotate(${vd.angle}deg)`;}
 }
 
 function delVeh(id){
-  const i=vehs.findIndex(x=>x.id===id); if(i===-1) return;
-  const v=vehs[i];
-  map.removeLayer(v.marker);
-  if(v.trailer){map.removeLayer(v.trailer.marker);map.removeLayer(v.trailer.line);}
-  if(v.pathLine) map.removeLayer(v.pathLine);
+  const i=vehs.findIndex(v=>v.id===id);if(i<0)return;
+  const vd=vehs[i];
+  map.removeLayer(vd.mk);
+  if(vd.trailer){map.removeLayer(vd.trailer.mk);map.removeLayer(vd.trailer.line);}
+  if(vd.pathLine)map.removeLayer(vd.pathLine);
   vehs.splice(i,1);
-  updateVehPill();
+  updateVehUI();
 }
 
 function clearAll(){
-  vehs.forEach(v=>{
-    map.removeLayer(v.marker);
-    if(v.trailer){map.removeLayer(v.trailer.marker);map.removeLayer(v.trailer.line);}
-    if(v.pathLine) map.removeLayer(v.pathLine);
+  vehs.forEach(vd=>{
+    map.removeLayer(vd.mk);
+    if(vd.trailer){map.removeLayer(vd.trailer.mk);map.removeLayer(vd.trailer.line);}
+    if(vd.pathLine)map.removeLayer(vd.pathLine);
   });
   vehs=[];
-  signs.forEach(s=>map.removeLayer(s.marker));
+  signs.forEach(s=>map.removeLayer(s.mk));
   signs=[];
-  updateVehPill();
+  if(drawnPath){map.removeLayer(drawnPath);drawnPath=null;}
+  drawnLatLngs=[];
+  updateVehUI();
 }
 
-function updateVehPill(){
-  document.getElementById('pill-veh').textContent=vehs.length+' Fz';
+function updateVehUI(){
+  document.getElementById('hp-veh').textContent=vehs.length+' Fz';
 }
 
-// ═══════════════════════════════════════════════════════
-// PATH DRAW & DRIVE ANIMATION (Leaflet-native, tablet-safe)
-// ═══════════════════════════════════════════════════════
-let driveVeh=null;
+// ═══════════════════════ SVG BUILDERS ═══════════════════════
+function svgVeh(type,c,w,h){
+  const s={w,h};
+  switch(type){
+    case 'PKW':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 18 40"><rect x="1.5" y="6" width="15" height="28" rx="3.5" fill="${c}"/><rect x="3" y="8" width="12" height="11" rx="2" fill="rgba(0,0,0,.3)"/><rect x="0" y="9" width="3" height="7" rx="1.5" fill="#111"/><rect x="15" y="9" width="3" height="7" rx="1.5" fill="#111"/><rect x="0" y="26" width="3" height="6" rx="1.5" fill="#111"/><rect x="15" y="26" width="3" height="6" rx="1.5" fill="#111"/><rect x="3.5" y="1.5" width="11" height="5.5" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3.5" y="35" width="11" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
+    case 'LKW':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 22 58"><rect x="1.5" y="15" width="19" height="40" rx="2" fill="${c}" opacity=".85"/><rect x="1.5" y="3" width="19" height="14" rx="3" fill="${c}"/><rect x="3" y="5" width="16" height="9" rx="2" fill="rgba(0,0,0,.3)"/><rect x="0" y="6" width="2.5" height="7" rx="1.5" fill="#111"/><rect x="19.5" y="6" width="2.5" height="7" rx="1.5" fill="#111"/><rect x="0" y="44" width="3.5" height="9" rx="2" fill="#111"/><rect x="18.5" y="44" width="3.5" height="9" rx="2" fill="#111"/><rect x="3" y="0" width="16" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3" y="54" width="16" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
+    case 'Krad':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 11 30"><rect x="2.5" y="4" width="6" height="22" rx="3" fill="${c}"/><ellipse cx="5.5" cy="4" rx="4" ry="4" fill="${c}"/><rect x="1.5" y="1.5" width="8" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="1.5" y="26" width="8" height="3" rx="1.5" fill="rgba(220,50,50,.9)"/><rect x="0" y="8" width="2.5" height="12" rx="1.5" fill="#222"/><rect x="8.5" y="8" width="2.5" height="12" rx="1.5" fill="#222"/></svg>`;
+    case 'Rad':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 9 24"><rect x="2.5" y="3" width="4" height="18" rx="2" fill="${c}"/><circle cx="4.5" cy="3" r="3" fill="${c}"/><rect x="1.5" y="1" width="6" height="3" rx="1.5" fill="rgba(255,255,190,.8)"/></svg>`;
+    case 'Bus':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 24 68"><rect x="1" y="4" width="22" height="60" rx="4" fill="${c}" opacity=".85"/><rect x="3" y="8" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="13" y="8" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="20" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="13" y="20" width="8" height="8" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="32" width="18" height="12" rx="1.5" fill="rgba(0,0,0,.2)"/><rect x="3" y="1" width="18" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3" y="64" width="18" height="4" rx="2" fill="rgba(220,50,50,.9)"/><rect x="1" y="50" width="4" height="10" rx="2" fill="#111"/><rect x="19" y="50" width="4" height="10" rx="2" fill="#111"/></svg>`;
+    case 'Fuss':return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 14 14"><circle cx="7" cy="4.5" r="4" fill="${c}"/><path d="M1.5,14 Q7,8 12.5,14" fill="${c}"/></svg>`;
+    default:return`<svg width="${s.w}" height="${s.h}" viewBox="0 0 18 40"><rect x="1.5" y="6" width="15" height="28" rx="3.5" fill="${c}"/></svg>`;
+  }
+}
+
+function svgTrailer(c,w,h){
+  return`<svg width="${w}" height="${h}" viewBox="0 0 22 52"><rect x="1.5" y="1.5" width="19" height="46" rx="2" fill="${c}" opacity=".78"/><rect x="3" y="5" width="16" height="6" rx="1" fill="rgba(255,255,255,.18)"/><rect x="3" y="15" width="16" height="6" rx="1" fill="rgba(255,255,255,.18)"/><rect x="3" y="25" width="16" height="6" rx="1" fill="rgba(255,255,255,.18)"/><rect x="0" y="37" width="4.5" height="9" rx="2" fill="#111"/><rect x="17.5" y="37" width="4.5" height="9" rx="2" fill="#111"/><rect x="3" y="48" width="16" height="3.5" rx="1.5" fill="rgba(220,50,50,.85)"/><circle cx="11" cy="2" r="2.5" fill="#888" stroke="#555" stroke-width="1"/></svg>`;
+}
+
+// ═══════════════════════ SIGNS ═══════════════════════
+let signs=[],sId=0;
+const SIGN_SVGS={
+  '205':`<svg width="44" height="40" viewBox="0 0 44 40"><polygon points="22,38 1,3 43,3" fill="white" stroke="#cc0000" stroke-width="5" stroke-linejoin="round"/></svg>`,
+  '206':`<svg width="42" height="42" viewBox="0 0 42 42"><polygon points="13,2 29,2 40,13 40,29 29,40 13,40 2,29 2,13" fill="#cc0000" stroke="white" stroke-width="2.5"/><text x="21" y="26" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial">STOP</text></svg>`,
+  '301':`<svg width="46" height="42" viewBox="0 0 46 42"><polygon points="23,2 44,40 2,40" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><rect x="21" y="15" width="4" height="19" fill="#222"/><rect x="11" y="27" width="8" height="3.5" fill="#222"/><rect x="27" y="27" width="8" height="3.5" fill="#222"/><polygon points="23,12 20,17 26,17" fill="#222"/></svg>`,
+  '306':`<svg width="42" height="42" viewBox="0 0 42 42"><rect x="3" y="3" width="36" height="36" rx="3" fill="white" stroke="#444" stroke-width="2.5" transform="rotate(45 21 21)"/><rect x="9" y="9" width="24" height="24" rx="2" fill="#f5c400" transform="rotate(45 21 21)"/></svg>`,
+  '306k':`<svg width="42" height="42" viewBox="0 0 42 42"><rect x="1" y="1" width="40" height="40" rx="4" fill="white" stroke="#444" stroke-width="2.5"/><path d="M21,39 L21,21 Q21,12 13.5,7.5" stroke="#222" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="22" y="20" width="14" height="4.5" fill="#222" rx="1.5"/><line x1="13.5" y1="7.5" x2="9" y2="2" stroke="#222" stroke-width="5.5" stroke-linecap="round"/></svg>`,
+  '307':`<svg width="42" height="42" viewBox="0 0 42 42"><rect x="3" y="3" width="36" height="36" rx="3" fill="white" stroke="#444" stroke-width="2.5" transform="rotate(45 21 21)"/><rect x="9" y="9" width="24" height="24" rx="2" fill="#f5c400" transform="rotate(45 21 21)"/><line x1="7" y1="7" x2="35" y2="35" stroke="#666" stroke-width="3.5" stroke-linecap="round"/></svg>`,
+  '101':`<svg width="42" height="38" viewBox="0 0 42 38"><polygon points="21,2 40,36 2,36" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><text x="21" y="32" text-anchor="middle" font-size="20" font-weight="bold" fill="#cc0000" font-family="serif">!</text></svg>`,
+  '209':`<svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M12,19 L20,10 L20,16 L27,16 L27,22 L20,22 L20,28 Z" fill="white"/></svg>`,
+  '215':`<svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M19,8 A11,11 0 1,1 8,19" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/><polygon points="19,5 13,12 25,12" fill="white"/></svg>`,
+  '250':`<svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="17" fill="white" stroke="#cc0000" stroke-width="4.5"/><rect x="8" y="16" width="22" height="6" rx="2" fill="#cc0000"/></svg>`,
+};
+
+function createSign(code,ll){
+  const sid=++sId;
+  const html=`<div class="sm" id="sm${sid}">${SIGN_SVGS[code]||''}<button class="smdel" onclick="delSign(${sid})">✕</button></div>`;
+  const icon=L.divIcon({html,iconSize:[46,50],iconAnchor:[23,46],className:''});
+  const mk=L.marker(ll,{icon,draggable:false,zIndexOffset:2000,interactive:false}).addTo(map);
+  const sd={id:sid,code,mk};
+  signs.push(sd);
+  mk.on('add',()=>{const el=mk.getElement();if(el)attachSignDrag(mk,el);});
+}
+
+function attachSignDrag(mk,el){
+  let dragging=false,startPt,startLL;
+  el.style.touchAction='none';
+  el.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.smdel'))return;
+    e.preventDefault();e.stopPropagation();
+    el.setPointerCapture(e.pointerId);
+    dragging=true;startPt=L.point(e.clientX,e.clientY);startLL=mk.getLatLng();
+    map.dragging.disable();
+  },{passive:false,capture:true});
+  el.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    e.preventDefault();
+    const startContainerPt=map.latLngToContainerPoint(startLL);
+    const newPt=L.point(startContainerPt.x+(e.clientX-startPt.x),startContainerPt.y+(e.clientY-startPt.y));
+    mk.setLatLng(map.containerPointToLatLng(newPt));
+  },{passive:false,capture:true});
+  el.addEventListener('pointerup',e=>{
+    dragging=false;map.dragging.enable();
+    e.stopPropagation();
+  },{capture:true});
+  el.addEventListener('click',e=>e.stopPropagation(),{capture:true});
+}
+
+function delSign(id){const i=signs.findIndex(s=>s.id===id);if(i<0)return;map.removeLayer(signs[i].mk);signs.splice(i,1);}
+
+// ═══════════════════════ DRAW PATH ═══════════════════════
+let drawMode=false;
 let drawnLatLngs=[];
-let livePolyline=null;
+let drawnPath=null; // L.Polyline shown during + after drawing
 
-// Dedicated pane for drawing path
-map.createPane('drawPane');
-map.getPane('drawPane').style.zIndex=450;
-map.getPane('drawPane').style.pointerEvents='none';
-
-function selectForDrive(id){
-  const v=vehs.find(x=>x.id===id); if(!v) return;
-  if(drawMode) endDraw(false);
-  driveVeh=v;
+function startDrawMode(){
+  clearMode();
+  closeDvPanel();
+  if(drawMode)cancelDraw();
   drawMode=true;
   drawnLatLngs=[];
+  if(drawnPath){map.removeLayer(drawnPath);drawnPath=null;}
 
-  livePolyline=L.polyline([],{
+  // Create empty polyline for live drawing
+  drawnPath=L.polyline([],{
     color:'#f59e0b',weight:4,opacity:.9,
-    dashArray:'8,5',lineCap:'round',lineJoin:'round',
-    pane:'drawPane'
+    lineCap:'round',lineJoin:'round'
   }).addTo(map);
 
-  setModeBar('FAHRWEG ZEICHNEN – Finger/Stift auf Karte ziehen → loslassen = Fahrt startet');
+  document.getElementById('chip-draw').classList.add('on');
   map.dragging.disable();
   map.touchZoom.disable();
+  map.scrollWheelZoom.disable();
+  setMode('FAHRWEG ZEICHNEN — Finger/Stift auf Karte ziehen',
+    `<button class="mbtn" onclick="cancelDraw()">✕ Abbrechen</button>`);
 
   const mc=map.getContainer();
-
-  function getLL(e){
-    const src=e.touches?e.touches[0]:e;
-    const r=mc.getBoundingClientRect();
-    return map.containerPointToLatLng(L.point(src.clientX-r.left,src.clientY-r.top));
-  }
-  function onStart(e){
-    e.preventDefault();e.stopPropagation();
-    drawnLatLngs=[];
-    const ll=getLL(e);
-    drawnLatLngs.push(ll);
-    livePolyline.setLatLngs([ll]);
-  }
-  function onMove(e){
-    e.preventDefault();e.stopPropagation();
-    if(!drawnLatLngs.length) return;
-    drawnLatLngs.push(getLL(e));
-    livePolyline.setLatLngs(drawnLatLngs);
-  }
-  function onEnd(e){
-    e.preventDefault();e.stopPropagation();
-    mc.removeEventListener('mousedown',onStart,true);
-    mc.removeEventListener('mousemove',onMove,true);
-    mc.removeEventListener('mouseup',onEnd,true);
-    mc.removeEventListener('touchstart',onStart,true);
-    mc.removeEventListener('touchmove',onMove,true);
-    mc.removeEventListener('touchend',onEnd,true);
-    if(drawnLatLngs.length>3) startDriveAnimation();
-    else endDraw(false);
-  }
-  mc.addEventListener('mousedown',onStart,{capture:true});
-  mc.addEventListener('mousemove',onMove,{capture:true});
-  mc.addEventListener('mouseup',onEnd,{capture:true});
-  mc.addEventListener('touchstart',onStart,{capture:true,passive:false});
-  mc.addEventListener('touchmove',onMove,{capture:true,passive:false});
-  mc.addEventListener('touchend',onEnd,{capture:true,passive:false});
+  mc._drawStart=onDrawStart;
+  mc._drawMove=onDrawMove;
+  mc._drawEnd=onDrawEnd;
+  mc.addEventListener('pointerdown',onDrawStart,{capture:true,passive:false});
+  mc.addEventListener('pointermove',onDrawMove,{capture:true,passive:false});
+  mc.addEventListener('pointerup',onDrawEnd,{capture:true,passive:false});
+  mc.addEventListener('pointercancel',onDrawEnd,{capture:true,passive:false});
 }
 
-function startDriveAnimation(){
-  if(!driveVeh||drawnLatLngs.length<2){endDraw(false);return;}
+let _drawing=false;
+function onDrawStart(e){
+  // Ignore taps on UI elements
+  if(e.target.closest('.tb,.modebar,.vmctrl,.vbtn,.smdel,.dv-panel'))return;
+  e.preventDefault();e.stopPropagation();
+  _drawing=true;drawnLatLngs=[];
+  const ll=evLL(e);drawnLatLngs.push(ll);
+  drawnPath.setLatLngs([ll]);
+}
+function onDrawMove(e){
+  if(!_drawing)return;
+  e.preventDefault();e.stopPropagation();
+  drawnLatLngs.push(evLL(e));
+  drawnPath.setLatLngs(drawnLatLngs);
+}
+function onDrawEnd(e){
+  if(!_drawing)return;
+  _drawing=false;
+  e.preventDefault();e.stopPropagation();
+  removeDrawListeners();
+  if(drawnLatLngs.length>5){
+    // Path drawn – show confirmation + vehicle selection
+    drawMode=false;
+    map.dragging.enable();map.touchZoom.enable();map.scrollWheelZoom.enable();
+    document.getElementById('chip-draw').classList.remove('on');
+    drawnPath.setStyle({color:'#f59e0b',weight:3.5,opacity:.85,dashArray:'none'});
+    setMode('✓ FAHRWEG BEREIT',
+      `<button class="mbtn go" onclick="showVehSelect()">▶ Fahrzeug wählen</button>
+       <button class="mbtn" onclick="redrawPath()">↺ Neu zeichnen</button>
+       <button class="mbtn" onclick="cancelDraw()">✕ Verwerfen</button>`);
+  } else {
+    cancelDraw();
+    setMode('Fahrweg zu kurz – erneut versuchen',`<button class="mbtn" onclick="startDrawMode()">Erneut</button><button class="mbtn" onclick="clearMode()">✕</button>`);
+  }
+}
 
-  // Show preview: keep path visible, show "Starten" button
-  if(livePolyline) livePolyline.setStyle({color:'#f59e0b',opacity:.85,dashArray:'none',weight:4});
-  setModeBar('FAHRWEG BEREIT – Fahrt starten oder neu zeichnen');
-  document.getElementById('mode-bar').innerHTML=`
-    <span class="mode-txt" id="mode-txt">✓ FAHRWEG BEREIT</span>
-    <button class="mode-cancel" style="background:#16a34a;border-color:#16a34a;color:white" onclick="confirmDrive()">▶ Fahrt starten</button>
-    <button class="mode-cancel" onclick="redrawPath()">↺ Neu zeichnen</button>
-    <button class="mode-cancel" onclick="endDraw(false)">✕ Abbrechen</button>`;
-  document.getElementById('mode-bar').classList.add('on');
-  map.dragging.enable();
-  map.touchZoom.enable();
+function evLL(e){
+  const r=map.getContainer().getBoundingClientRect();
+  return map.containerPointToLatLng(L.point(e.clientX-r.left,e.clientY-r.top));
+}
+
+function removeDrawListeners(){
+  const mc=map.getContainer();
+  mc.removeEventListener('pointerdown',onDrawStart,{capture:true});
+  mc.removeEventListener('pointermove',onDrawMove,{capture:true});
+  mc.removeEventListener('pointerup',onDrawEnd,{capture:true});
+  mc.removeEventListener('pointercancel',onDrawEnd,{capture:true});
+}
+
+function cancelDraw(){
+  drawMode=false;_drawing=false;
+  removeDrawListeners();
+  map.dragging.enable();map.touchZoom.enable();map.scrollWheelZoom.enable();
+  if(drawnPath){map.removeLayer(drawnPath);drawnPath=null;}
+  drawnLatLngs=[];
+  document.getElementById('chip-draw').classList.remove('on');
+  setMode(null);closeDvPanel();
 }
 
 function redrawPath(){
-  if(livePolyline){map.removeLayer(livePolyline);livePolyline=null;}
+  if(drawnPath){map.removeLayer(drawnPath);drawnPath=null;}
   drawnLatLngs=[];
-  if(driveVeh) selectForDrive(driveVeh.id);
+  startDrawMode();
 }
 
-function confirmDrive(){
-  if(!driveVeh||drawnLatLngs.length<2){endDraw(false);return;}
-  const v=driveVeh;
-  const pts=drawnLatLngs.slice();
-  if(v.pathLine) map.removeLayer(v.pathLine);
-  v.pathLine=livePolyline;
-  if(livePolyline) livePolyline.setStyle({color:'#f59e0b',opacity:.4,dashArray:'6,4',weight:2.5});
-  livePolyline=null;
-  endDraw(true);
+// ═══════════════════════ VEHICLE SELECT FOR DRIVE ═══════════════════════
+function showVehSelect(){
+  closeDvPanel();
+  if(vehs.length===0){
+    setMode('Kein Fahrzeug vorhanden – bitte zuerst Fahrzeug platzieren',
+      `<button class="mbtn" onclick="cancelDraw()">✕</button>`);
+    return;
+  }
+  const list=document.getElementById('dv-list');
+  list.innerHTML=vehs.map(v=>`
+    <div class="dv-item" onclick="startDrive(${v.id})">
+      <div class="dv-dot" style="background:${v.color}"></div>
+      <span>${v.label} #${v.id}</span>
+    </div>`).join('');
+  document.getElementById('dv-panel').classList.add('on');
+  setMode('FAHRZEUG WÄHLEN',`<button class="mbtn" onclick="cancelDraw()">✕ Abbrechen</button>`);
+}
 
-  let idx=0;
+function closeDvPanel(){document.getElementById('dv-panel').classList.remove('on');}
+
+function startDrive(id){
+  closeDvPanel();
+  setMode(null);
+  const vd=vehs.find(v=>v.id===id);
+  if(!vd||drawnLatLngs.length<2)return;
+
+  const pts=drawnLatLngs.slice();
   const total=pts.length;
-  const stepSize=Math.max(1,Math.floor(total/100));
-  const vmEl=v.marker.getElement()?.querySelector('.vm');
-  if(vmEl) vmEl.classList.add('driving');
+  const stepSize=Math.max(1,Math.floor(total/120));
+  let idx=0;
+
+  // Fade the drawn path
+  if(drawnPath)drawnPath.setStyle({opacity:.35,weight:2,dashArray:'6,4'});
 
   function animate(){
-    if(idx>=total-1){if(vmEl)vmEl.classList.remove('driving');return;}
+    if(idx>=total-1){return;}
     const next=pts[Math.min(idx+stepSize,total-1)];
-    const cur=v.marker.getLatLng();
-    const angle=Math.atan2(next.lng-cur.lng,next.lat-cur.lat)*180/Math.PI;
-    v.marker.setLatLng(next);
-    v.angle=angle;
-    const el=v.marker.getElement();
-    if(el){const vm=el.querySelector('.vm');if(vm)vm.style.transform=`rotate(${angle}deg)`;}
-    if(v.trailer) updateTrailer(v,next);
+    const cur=vd.mk.getLatLng();
+
+    // Angle from current to next in screen coordinates
+    const curPt=map.latLngToContainerPoint(cur);
+    const nextPt=map.latLngToContainerPoint(next);
+    const dx=nextPt.x-curPt.x, dy=nextPt.y-curPt.y;
+    const angle=Math.atan2(dx,-dy)*180/Math.PI;
+
+    vd.mk.setLatLng(next);
+    vd.angle=angle;
+    const el=vd.mk.getElement()?.querySelector('.vm');
+    if(el)el.style.transform=`rotate(${angle}deg)`;
+    if(vd.trailer)updateTrailer(vd,next);
+
     idx=Math.min(idx+stepSize,total-1);
     requestAnimationFrame(animate);
   }
   requestAnimationFrame(animate);
 }
 
-function endDraw(keepPath){
-  drawMode=false;
-  map.dragging.enable();
-  map.touchZoom.enable();
-  setModeBar(null);
-  if(!keepPath&&livePolyline){map.removeLayer(livePolyline);livePolyline=null;}
-  driveVeh=null;
-  drawnLatLngs=[];
-}
-
-// ═══════════════════════════════════════════════════════
-// SVG BUILDERS
-// ═══════════════════════════════════════════════════════
-function buildSVG(type,color,w,h){
-  switch(type){
-    case 'PKW': return `<svg width="${w}" height="${h}" viewBox="0 0 20 44"><rect x="2" y="7" width="16" height="30" rx="4" fill="${color}"/><rect x="3" y="9" width="14" height="12" rx="2" fill="rgba(0,0,0,.3)"/><rect x="1" y="11" width="3" height="8" rx="1.5" fill="#111"/><rect x="16" y="11" width="3" height="8" rx="1.5" fill="#111"/><rect x="1" y="28" width="3" height="6" rx="1.5" fill="#111"/><rect x="16" y="28" width="3" height="6" rx="1.5" fill="#111"/><rect x="4" y="2" width="12" height="6" rx="2" fill="rgba(255,255,190,.9)"/><rect x="4" y="38" width="12" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
-    case 'LKW': return `<svg width="${w}" height="${h}" viewBox="0 0 24 68"><rect x="2" y="18" width="20" height="46" rx="2" fill="${color}" opacity=".85"/><rect x="2" y="4" width="20" height="17" rx="3" fill="${color}"/><rect x="4" y="6" width="16" height="10" rx="2" fill="rgba(0,0,0,.3)"/><rect x="0" y="7" width="3" height="9" rx="1.5" fill="#111"/><rect x="21" y="7" width="3" height="9" rx="1.5" fill="#111"/><rect x="0" y="52" width="4" height="10" rx="2" fill="#111"/><rect x="20" y="52" width="4" height="10" rx="2" fill="#111"/><rect x="4" y="1" width="16" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="4" y="64" width="16" height="4" rx="2" fill="rgba(220,50,50,.9)"/></svg>`;
-    case 'Krad': return `<svg width="${w}" height="${h}" viewBox="0 0 12 34"><rect x="3" y="5" width="6" height="24" rx="3" fill="${color}"/><ellipse cx="6" cy="5" rx="4" ry="4" fill="${color}"/><rect x="2" y="2" width="8" height="4" rx="2" fill="rgba(255,255,190,.9)"/><rect x="2" y="30" width="8" height="3" rx="1.5" fill="rgba(220,50,50,.9)"/><rect x="0" y="9" width="3" height="14" rx="1.5" fill="#222"/><rect x="9" y="9" width="3" height="14" rx="1.5" fill="#222"/></svg>`;
-    case 'Rad': return `<svg width="${w}" height="${h}" viewBox="0 0 10 28"><rect x="3" y="4" width="4" height="20" rx="2" fill="${color}"/><circle cx="5" cy="4" r="3" fill="${color}"/><rect x="2" y="2" width="6" height="3" rx="1.5" fill="rgba(255,255,190,.8)"/></svg>`;
-    case 'Bus': return `<svg width="${w}" height="${h}" viewBox="0 0 26 76"><rect x="1" y="5" width="24" height="66" rx="4" fill="${color}" opacity=".85"/><rect x="3" y="9" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="14" y="9" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="22" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="14" y="22" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/><rect x="3" y="35" width="20" height="14" rx="1.5" fill="rgba(0,0,0,.2)"/><rect x="3" y="2" width="20" height="5" rx="2" fill="rgba(255,255,190,.9)"/><rect x="3" y="71" width="20" height="4" rx="2" fill="rgba(220,50,50,.9)"/><rect x="1" y="56" width="5" height="12" rx="2" fill="#111"/><rect x="20" y="56" width="5" height="12" rx="2" fill="#111"/></svg>`;
-    case 'Fußg.': return `<svg width="${w}" height="${h}" viewBox="0 0 16 16"><circle cx="8" cy="5" r="4" fill="${color}"/><path d="M2 16 Q8 9 14 16" fill="${color}"/></svg>`;
-    default: return `<svg width="${w}" height="${h}" viewBox="0 0 20 44"><rect x="2" y="7" width="16" height="30" rx="4" fill="${color}"/></svg>`;
-  }
-}
-function buildTrailerSVG(color,w,h){
-  return `<svg width="${w}" height="${h}" viewBox="0 0 24 60"><rect x="2" y="2" width="20" height="52" rx="2" fill="${color}" opacity=".75"/><rect x="4" y="5" width="16" height="7" rx="1" fill="rgba(255,255,255,.15)"/><rect x="4" y="16" width="16" height="7" rx="1" fill="rgba(255,255,255,.15)"/><rect x="4" y="27" width="16" height="7" rx="1" fill="rgba(255,255,255,.15)"/><rect x="0" y="42" width="5" height="9" rx="2" fill="#111"/><rect x="19" y="42" width="5" height="9" rx="2" fill="#111"/><rect x="4" y="54" width="16" height="4" rx="2" fill="rgba(220,50,50,.85)"/><circle cx="12" cy="2" r="3" fill="#888" stroke="#555" stroke-width="1"/></svg>`;
-}
-
-// ═══════════════════════════════════════════════════════
-// SIGNS
-// ═══════════════════════════════════════════════════════
-let signs=[], sId=0;
-
-const SIGN_HTML={
-  '205':`<svg width="46" height="42" viewBox="0 0 46 42"><polygon points="23,40 2,3 44,3" fill="white" stroke="#cc0000" stroke-width="5" stroke-linejoin="round"/></svg>`,
-  '206':`<svg width="44" height="44" viewBox="0 0 44 44"><polygon points="15,2 29,2 42,15 42,29 29,42 15,42 2,29 2,15" fill="#cc0000" stroke="white" stroke-width="2.5"/><text x="22" y="27" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial,sans-serif">STOP</text></svg>`,
-  '301':`<svg width="48" height="44" viewBox="0 0 48 44"><polygon points="24,2 46,42 2,42" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><rect x="21.5" y="16" width="5" height="20" fill="#222"/><rect x="11" y="27" width="8" height="4" fill="#222"/><rect x="29" y="27" width="8" height="4" fill="#222"/><polygon points="24,13 21,18 27,18" fill="#222"/></svg>`,
-  '306':`<svg width="44" height="44" viewBox="0 0 44 44"><rect x="2" y="2" width="40" height="40" rx="4" fill="white" stroke="#333" stroke-width="2.5" transform="rotate(45 22 22)"/><rect x="9" y="9" width="26" height="26" rx="2" fill="#f5c400" transform="rotate(45 22 22)"/></svg>`,
-  '306-abbieg':`<svg width="44" height="44" viewBox="0 0 44 44"><rect x="1" y="1" width="42" height="42" rx="5" fill="white" stroke="#333" stroke-width="2.5"/><path d="M22,40 L22,22 Q22,12 14,8" stroke="#222" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="23" y="21" width="16" height="5" fill="#222" rx="1.5"/><line x1="14" y1="8" x2="9" y2="2" stroke="#222" stroke-width="6" stroke-linecap="round"/></svg>`,
-  '307':`<svg width="44" height="44" viewBox="0 0 44 44"><rect x="2" y="2" width="40" height="40" rx="4" fill="white" stroke="#333" stroke-width="2.5" transform="rotate(45 22 22)"/><rect x="9" y="9" width="26" height="26" rx="2" fill="#f5c400" transform="rotate(45 22 22)"/><line x1="7" y1="7" x2="37" y2="37" stroke="#555" stroke-width="3.5" stroke-linecap="round"/></svg>`,
-  '101':`<svg width="44" height="40" viewBox="0 0 44 40"><polygon points="22,2 42,38 2,38" fill="white" stroke="#cc0000" stroke-width="4.5" stroke-linejoin="round"/><text x="22" y="34" text-anchor="middle" font-size="21" font-weight="bold" fill="#cc0000" font-family="serif">!</text></svg>`,
-  '209':`<svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M13,20 L21,11 L21,17 L28,17 L28,23 L21,23 L21,29 Z" fill="white"/></svg>`,
-  '215':`<svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#2563eb" stroke="white" stroke-width="2.5"/><path d="M20,9 A11,11 0 1,1 9,20" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/><polygon points="20,6 14,13 26,13" fill="white"/></svg>`,
-  '250':`<svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="white" stroke="#cc0000" stroke-width="4.5"/><rect x="9" y="17" width="22" height="6" rx="2" fill="#cc0000"/></svg>`,
-};
-
-function placeSign(ll){
-  const code=signMode; cancelMode();
-  const sid=++sId;
-  const svgHtml=SIGN_HTML[code]||'';
-  const html=`<div class="sm" id="sm${sid}">${svgHtml}<button class="sm-del" onclick="delSign(${sid})" ontouchend="delSign(${sid})">✕</button></div>`;
-  const icon=L.divIcon({html,iconSize:[48,50],iconAnchor:[24,48],className:''});
-  const marker=L.marker(ll,{icon,draggable:true,zIndexOffset:2000}).addTo(map);
-  signs.push({id:sid,code,marker});
-}
-function delSign(id){
-  const i=signs.findIndex(s=>s.id===id);if(i===-1)return;
-  map.removeLayer(signs[i].marker);signs.splice(i,1);
-}
-
-// ═══════════════════════════════════════════════════════
-// AUTOCOMPLETE
-// ═══════════════════════════════════════════════════════
-let acTimer=null, acRes=[], acSel=-1;
-
-function onAcInput(){
+// ═══════════════════════ AUTOCOMPLETE ═══════════════════════
+let acTimer=null,acRes=[],acSel=-1;
+function acInput(){
   const q=document.getElementById('ac-inp').value.trim();
-  clearTimeout(acTimer); acSel=-1;
+  clearTimeout(acTimer);acSel=-1;
   if(q.length<3){closeAc();return;}
   acTimer=setTimeout(()=>fetchAc(q),320);
 }
-function onAcKey(e){
+function acKey(e){
   const list=document.getElementById('ac-list');
   if(!list.classList.contains('open')){if(e.key==='Enter')fetchAc(document.getElementById('ac-inp').value.trim(),true);return;}
   const items=list.querySelectorAll('.ac-item');
   if(e.key==='ArrowDown'){e.preventDefault();acSel=Math.min(acSel+1,items.length-1);hiAc(items);}
   else if(e.key==='ArrowUp'){e.preventDefault();acSel=Math.max(acSel-1,-1);hiAc(items);}
-  else if(e.key==='Enter'){e.preventDefault();if(acSel>=0&&acRes[acSel])pickAc(acRes[acSel]);else if(acRes[0])pickAc(acRes[0]);}
+  else if(e.key==='Enter'){e.preventDefault();if(acRes[acSel])pickAc(acRes[acSel]);else if(acRes[0])pickAc(acRes[0]);}
   else if(e.key==='Escape')closeAc();
 }
-function hiAc(items){items.forEach((el,i)=>el.classList.toggle('sel',i===acSel));if(acSel>=0)items[acSel].scrollIntoView({block:'nearest'});}
-async function fetchAc(q,immediate=false){
-  const spin=document.getElementById('ac-spin');spin.classList.add('on');
+function hiAc(items){items.forEach((el,i)=>el.classList.toggle('sel',i===acSel));}
+async function fetchAc(q,imm=false){
+  const sp=document.getElementById('ac-spin');sp.classList.add('on');
   try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=7&addressdetails=1&accept-language=de&countrycodes=de,at,ch`,{headers:{'User-Agent':'PraxistrainerKFAz/3.0'}});
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=7&addressdetails=1&accept-language=de&countrycodes=de,at,ch`,{headers:{'User-Agent':'PraxistrainerBw/4.0'}});
     acRes=await r.json();
-    if(immediate&&acRes.length===1){pickAc(acRes[0]);return;}
+    if(imm&&acRes.length===1){pickAc(acRes[0]);return;}
     renderAc();
-  }catch{}finally{spin.classList.remove('on');}
+  }catch{}finally{sp.classList.remove('on');}
 }
 function renderAc(){
   const list=document.getElementById('ac-list');
-  if(!acRes.length){list.innerHTML=`<li class="ac-item" style="color:var(--muted);cursor:default">Keine Ergebnisse</li>`;list.classList.add('open');return;}
+  if(!acRes.length){list.innerHTML=`<li class="ac-item" style="cursor:default;color:#5a6070">Keine Ergebnisse</li>`;list.classList.add('open');return;}
   list.innerHTML=acRes.map((r,i)=>{
     const a=r.address||{};
     const main=a.road||a.pedestrian||a.suburb||a.city||a.town||r.display_name.split(',')[0];
-    const sub=[a.house_number,a.postcode,a.city||a.town||a.village].filter(Boolean).join(' · ');
-    return `<li class="ac-item" onclick="pickAc(acRes[${i}])"><div><div class="ac-main">${esc(main)}</div>${sub?`<div class="ac-sub">${esc(sub)}</div>`:''}</div></li>`;
+    const sub=[a.postcode,a.city||a.town||a.village].filter(Boolean).join(' ');
+    return`<li class="ac-item" onclick="pickAc(acRes[${i}])"><div class="ac-main">${esc(main)}</div>${sub?`<div class="ac-sub">${esc(sub)}</div>`:''}</li>`;
   }).join('');
   list.classList.add('open');
 }
 function pickAc(r){
-  const ll=L.latLng(parseFloat(r.lat),parseFloat(r.lon));
   document.getElementById('ac-inp').value=r.display_name.split(',').slice(0,2).join(', ');
   closeAc();
-  map.setView(ll,17);
-  toast('Pin durch Tippen auf die Kreuzung setzen');
+  map.setView(L.latLng(parseFloat(r.lat),parseFloat(r.lon)),17);
 }
 function closeAc(){document.getElementById('ac-list').classList.remove('open');acRes=[];acSel=-1;}
 document.addEventListener('click',e=>{if(!document.getElementById('ac-inp').contains(e.target)&&!document.getElementById('ac-list').contains(e.target))closeAc();});
 
-// ═══════════════════════════════════════════════════════
-// PORTRAIT TAB SWITCH
-// ═══════════════════════════════════════════════════════
-function switchTab(tab,btn){
-  document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const mp=document.getElementById('pane-map'), sb=document.getElementById('pane-sidebar');
-  if(tab==='map'){mp.classList.remove('tab-hidden');sb.classList.add('tab-hidden');setTimeout(()=>map.invalidateSize(),50);}
-  else{mp.classList.add('tab-hidden');sb.classList.remove('tab-hidden');}
+// ═══════════════════════ PORTRAIT TABS ═══════════════════════
+function ptab(tab,btn){
+  document.querySelectorAll('.ptabs button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const mp=document.getElementById('pane-map'),sd=document.getElementById('pane-side');
+  if(tab==='map'){mp.classList.remove('gone');sd.classList.add('gone');setTimeout(()=>map.invalidateSize(),50);}
+  else{mp.classList.add('gone');sd.classList.remove('gone');}
 }
 window.addEventListener('resize',()=>{
   if(window.matchMedia('(orientation:landscape)').matches){
-    document.getElementById('pane-map').classList.remove('tab-hidden');
-    document.getElementById('pane-sidebar').classList.remove('tab-hidden');
+    document.getElementById('pane-map').classList.remove('gone');
+    document.getElementById('pane-side').classList.remove('gone');
   }
   setTimeout(()=>map.invalidateSize(),100);
 });
 
-// ═══════════════════════════════════════════════════════
-// SIDEBAR TABS
-// ═══════════════════════════════════════════════════════
-function switchSbTab(tab,btn){
-  document.querySelectorAll('.sb-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.sb-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('sp-'+tab).classList.add('active');
+// ═══════════════════════ SIDEBAR TABS ═══════════════════════
+function stab(tab,btn){
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.spanel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('sp-'+tab).classList.add('on');
 }
 
-// ═══════════════════════════════════════════════════════
-// NOTES
-// ═══════════════════════════════════════════════════════
-let notes=JSON.parse(localStorage.getItem('pt3-notes')||'[]');
+// ═══════════════════════ NOTES ═══════════════════════
+let notes=JSON.parse(localStorage.getItem('pt4-notes')||'[]');
 let nId=notes.length?Math.max(...notes.map(n=>n.id))+1:1;
-let nFilter='alle';
+let nFilt='alle';
 const PL={hoch:'⚠ Wichtig',mittel:'● Mittel',info:'✓ Info',allg:'📌 Allg.'};
 const PC={hoch:'nbh',mittel:'nbm',info:'nbi',allg:'nba'};
 const CC={hoch:'ph',mittel:'pm',info:'pi',allg:''};
 
-function saveN(){localStorage.setItem('pt3-notes',JSON.stringify(notes));document.getElementById('pill-notes').textContent=notes.length+' Notizen';}
-function addNote(){
+function saveN(){localStorage.setItem('pt4-notes',JSON.stringify(notes));document.getElementById('hp-notes').textContent=notes.length+' Notizen';}
+function addN(){
   const t=document.getElementById('nta').value.trim();if(!t)return;
   const p=document.getElementById('nprio').value;
   const now=new Date();
   const ts=now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' · '+now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
   notes.unshift({id:nId++,text:t,prio:p,ts});
-  document.getElementById('nta').value='';
-  saveN();renderN();
+  document.getElementById('nta').value='';saveN();renderN();
 }
-function delNote(id){notes=notes.filter(n=>n.id!==id);saveN();renderN();}
-function filterN(f,btn){
-  nFilter=f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderN();
-}
+function delN(id){notes=notes.filter(n=>n.id!==id);saveN();renderN();}
+function nfilt(f,btn){nFilt=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderN();}
 function renderN(){
   const list=document.getElementById('nlist');
-  const shown=nFilter==='alle'?notes:notes.filter(n=>n.prio===nFilter);
-  if(!shown.length){list.innerHTML=`<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:20px">Keine Notizen</div>`;return;}
-  list.innerHTML=shown.map(n=>`<div class="ncard ${CC[n.prio]}"><div class="nmeta"><span class="nbadge ${PC[n.prio]}">${PL[n.prio]}</span><span>${n.ts}</span></div><div>${esc(n.text)}</div><button class="ndel" onclick="delNote(${n.id})">✕</button></div>`).join('');
+  const shown=nFilt==='alle'?notes:notes.filter(n=>n.prio===nFilt);
+  if(!shown.length){list.innerHTML=`<div style="color:var(--mu);font-size:.75rem;text-align:center;padding:18px">Keine Notizen</div>`;return;}
+  list.innerHTML=shown.map(n=>`<div class="ncard ${CC[n.prio]}"><div class="nmeta"><span class="nbadge ${PC[n.prio]}">${PL[n.prio]}</span><span>${n.ts}</span></div><div>${esc(n.text)}</div><button class="ndel" onclick="delN(${n.id})">✕</button></div>`).join('');
 }
 function exportN(){
-  const lines=notes.map(n=>`[${PL[n.prio]}] ${n.ts}\n${n.text}\n`).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([lines],{type:'text/plain'}));
-  a.download=`Notizen_PT_${new Date().toLocaleDateString('de-DE').replace(/\./g,'-')}.txt`;
-  a.click();
+  const txt=notes.map(n=>`[${PL[n.prio]}] ${n.ts}\n${n.text}\n`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download=`Notizen_PT_${new Date().toLocaleDateString('de-DE').replace(/\./g,'-')}.txt`;a.click();
 }
-document.getElementById('nta').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey)addNote();});
+document.getElementById('nta').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey)addN();});
 
-// ═══════════════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════ UTILS ═══════════════════════
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function toast(msg){
-  let t=document.getElementById('_toast');
-  if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:rgba(26,28,30,.93);color:#f0ece4;padding:7px 16px;border-radius:4px;font-family:Rajdhani,sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.04em;z-index:9999;pointer-events:none;transition:opacity .3s';document.body.appendChild(t);}
-  t.textContent=msg;t.style.opacity='1';
-  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',3000);
-}
 
 // INIT
 saveN();renderN();
