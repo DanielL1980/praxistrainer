@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Praxistrainer – KFAz Potsdam</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --ink:      #1a1c1e;
+  --ink2:     #2c2f33;
+  --ink3:     #3d4147;
+  --chrome:   #f0ece4;
+  --chrome2:  #e4dfd5;
+  --chrome3:  #d4cfc4;
+  --accent:   #c8401a;
+  --accent2:  #1a6fc8;
+  --gold:     #b8941a;
+  --green:    #2a7a3a;
+  --text:     #1a1c1e;
+  --muted:    #6b7280;
+  --border:   #c8c3b8;
+  --header-h: 56px;
+  --tab-h:    48px;
+  --panel-bg: #f7f3ec;
+  --sidebar-w: 38%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+body {
+  background: var(--chrome);
+  color: var(--text);
+  font-family: 'Source Serif 4', Georgia, serif;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* ═══════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════ */
+header {
+  height: var(--header-h);
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  flex-shrink: 0;
+  border-bottom: 3px solid var(--accent);
+}
+
+.logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--chrome);
+  letter-spacing: .1em;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+.logo-sub {
+  font-weight: 400;
+  font-size: .85rem;
+  color: #8a8f96;
+  letter-spacing: .05em;
+}
+
+.header-pills { display: flex; gap: 8px; align-items: center; }
+.pill {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .68rem;
+  padding: 3px 9px;
+  border-radius: 2px;
+  background: var(--ink2);
+  border: 1px solid var(--ink3);
+  color: #8a8f96;
+  letter-spacing: .06em;
+}
+.pill.live { border-color: var(--green); color: #4ade80; }
+
+/* ═══════════════════════════════════════════════
+   PORTRAIT TABS
+═══════════════════════════════════════════════ */
+.tab-bar {
+  display: none;
+  height: var(--tab-h);
+  background: var(--ink2);
+  border-bottom: 1px solid var(--ink3);
+  flex-shrink: 0;
+}
+.tab-bar button {
+  flex: 1; height: 100%;
+  background: none; border: none;
+  border-bottom: 3px solid transparent;
+  color: #8a8f96;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .95rem; font-weight: 600;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.tab-bar button.active { color: var(--chrome); border-bottom-color: var(--accent); }
+
+/* ═══════════════════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════════════════ */
+.main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+.pane-map {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.pane-sidebar {
+  flex: 0 0 var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel-bg);
+}
+
+/* Portrait */
+@media (orientation: portrait) {
+  .tab-bar { display: flex; }
+  .pane-map, .pane-sidebar {
+    position: absolute; inset: 0;
+    flex: 1 1 100%;
+    border-right: none;
+  }
+  .main { position: relative; }
+  .pane-map.tab-hidden,
+  .pane-sidebar.tab-hidden { display: none; }
+}
+
+/* ═══════════════════════════════════════════════
+   MAP TOOLBAR
+═══════════════════════════════════════════════ */
+.map-toolbar {
+  background: var(--ink2);
+  border-bottom: 1px solid var(--ink3);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  z-index: 1000;
+}
+
+.tb-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  color: #6b7380;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tb-sep { width: 1px; height: 20px; background: var(--ink3); }
+
+/* Fahrzeug-Chips */
+.veh-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px;
+  background: var(--ink3);
+  border: 1px solid #4a5060;
+  border-radius: 3px;
+  color: var(--chrome);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .8rem; font-weight: 600;
+  letter-spacing: .03em;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  user-select: none;
+}
+.veh-chip:hover { border-color: var(--accent2); background: #353a45; }
+.veh-chip .chip-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+/* Zeichen-Chips */
+.sign-chip {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: var(--ink3);
+  border: 1px solid #4a5060;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color .15s;
+  position: relative;
+}
+.sign-chip:hover { border-color: var(--gold); }
+.sign-chip svg { width: 22px; height: 22px; }
+.sign-chip[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -28px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--chrome);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .7rem;
+  padding: 3px 7px;
+  border-radius: 2px;
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.tb-btn {
+  padding: 5px 12px;
+  background: var(--ink3);
+  border: 1px solid #4a5060;
+  border-radius: 3px;
+  color: var(--chrome2);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .8rem; font-weight: 600;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.tb-btn:hover { border-color: var(--accent); color: var(--chrome); }
+.tb-btn.danger:hover { border-color: #f87171; color: #f87171; }
+
+.map-search-wrap {
+  display: flex; gap: 6px; align-items: center;
+  margin-left: auto;
+}
+
+.btn-go {
+  padding: 5px 14px;
+  background: var(--accent2);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: .85rem;
+  cursor: pointer;
+}
+
+/* ── Autocomplete ── */
+.autocomplete-wrap {
+  position: relative;
+  width: 260px;
+}
+@media (max-width: 700px) { .autocomplete-wrap { width: 180px; } }
+
+.ac-spinner {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  width: 14px; height: 14px;
+  border: 2px solid var(--ink3);
+  border-top-color: var(--accent2);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  display: none;
+}
+.ac-spinner.active { display: block; }
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+.ac-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--ink);
+  border: 1px solid var(--ink3);
+  border-radius: 3px;
+  list-style: none;
+  z-index: 9999;
+  max-height: 260px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5);
+}
+.ac-list.open { display: block; }
+.ac-list::-webkit-scrollbar { width: 4px; }
+.ac-list::-webkit-scrollbar-thumb { background: var(--ink3); border-radius: 2px; }
+
+.ac-item {
+  padding: 8px 12px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .82rem;
+  color: var(--chrome2);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ink2);
+  line-height: 1.35;
+  transition: background .1s;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.selected { background: var(--ink3); color: var(--chrome); }
+.ac-item-icon { flex-shrink: 0; opacity: .5; margin-top: 1px; font-size: .85rem; }
+.ac-item-main { font-weight: 600; }
+.ac-item-sub { font-size: .72rem; color: #6b7380; font-weight: 400; }
+
+/* ═══════════════════════════════════════════════
+   MAP
+═══════════════════════════════════════════════ */
+#map {
+  flex: 1;
+  z-index: 1;
+}
+
+/* Coord bar */
+.coord-bar {
+  height: 26px;
+  background: var(--ink2);
+  border-top: 1px solid var(--ink3);
+  display: flex; align-items: center;
+  padding: 0 12px; gap: 16px;
+  flex-shrink: 0;
+}
+.coord-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .68rem;
+  color: #6b7380;
+  letter-spacing: .05em;
+}
+.coord-text span { color: #9ba5b0; }
+
+.sv-btn {
+  margin-left: auto;
+  padding: 2px 12px;
+  background: none;
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  color: var(--gold);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .75rem; font-weight: 600;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: background .15s;
+}
+.sv-btn:hover { background: rgba(184,148,26,.12); }
+.sv-btn:disabled { border-color: #4a5060; color: #4a5060; cursor: default; }
+
+/* ═══════════════════════════════════════════════
+   VEHICLE MARKERS (Leaflet DivIcon)
+═══════════════════════════════════════════════ */
+.veh-marker {
+  position: relative;
+  cursor: grab;
+}
+.veh-marker:active { cursor: grabbing; }
+.veh-marker svg { display: block; }
+.veh-controls {
+  position: absolute;
+  top: -26px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 3px;
+  opacity: 0;
+  transition: opacity .15s;
+  pointer-events: none;
+  z-index: 9999;
+}
+.veh-marker:hover .veh-controls { opacity: 1; pointer-events: auto; }
+.veh-ctrl-btn {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+  font-weight: bold;
+}
+.btn-rot { background: var(--ink2); color: var(--chrome); }
+.btn-del { background: var(--accent); color: white; }
+
+.veh-label-tag {
+  position: absolute;
+  bottom: -17px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .58rem;
+  background: rgba(0,0,0,.75);
+  color: white;
+  padding: 1px 5px;
+  border-radius: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Sign marker */
+.sign-marker {
+  cursor: grab;
+  position: relative;
+}
+.sign-marker svg { display: block; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.sign-del-btn {
+  position: absolute;
+  top: -10px; right: -10px;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: none;
+  color: white;
+  font-size: 10px;
+  cursor: pointer;
+  display: none;
+  align-items: center; justify-content: center;
+  font-weight: bold;
+}
+.sign-marker:hover .sign-del-btn { display: flex; }
+
+/* Trailer joint line */
+.trailer-line { pointer-events: none; }
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════ */
+.sidebar-tabs {
+  display: flex;
+  background: var(--chrome2);
+  border-bottom: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.sidebar-tab {
+  flex: 1; padding: 10px 0;
+  background: none; border: none;
+  border-bottom: 3px solid transparent;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .88rem; font-weight: 600;
+  color: var(--muted); letter-spacing: .04em;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.sidebar-tab.active { color: var(--text); border-bottom-color: var(--accent2); }
+
+.sidebar-panel {
+  flex: 1; display: none; flex-direction: column; overflow: hidden; min-height: 0;
+}
+.sidebar-panel.active { display: flex; }
+
+/* ── StreetView panel ── */
+.sv-panel {
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sv-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.sv-card-header {
+  background: var(--ink);
+  padding: 8px 12px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .85rem; font-weight: 600;
+  color: var(--chrome2);
+  letter-spacing: .05em;
+}
+.sv-card-body { padding: 12px; font-size: .83rem; line-height: 1.6; color: var(--muted); }
+.sv-coords-display {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .8rem;
+  background: var(--chrome2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text);
+  letter-spacing: .05em;
+}
+.sv-open-btn {
+  display: block; width: 100%;
+  padding: 12px;
+  background: var(--ink);
+  border: none; border-radius: 6px;
+  color: var(--chrome);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  letter-spacing: .06em;
+  cursor: pointer;
+  transition: background .15s;
+  text-align: center;
+}
+.sv-open-btn:hover { background: var(--ink3); }
+.sv-open-btn:disabled { background: var(--chrome3); color: var(--muted); cursor: default; }
+
+.sv-tip {
+  font-size: .75rem; color: var(--muted);
+  font-style: italic; line-height: 1.5;
+  border-left: 3px solid var(--border);
+  padding-left: 10px;
+}
+
+/* ── Notes panel ── */
+.notes-toolbar {
+  padding: 8px 10px;
+  background: var(--chrome2);
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 6px; flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.filter-btn {
+  padding: 4px 10px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .75rem; font-weight: 600;
+  color: var(--muted); cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.filter-btn.active { border-color: var(--accent2); color: var(--accent2); }
+
+.note-list {
+  flex: 1; overflow-y: auto; padding: 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.note-list::-webkit-scrollbar { width: 4px; }
+.note-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.note-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent2);
+  border-radius: 0 4px 4px 0;
+  padding: 8px 10px;
+  font-size: .8rem; line-height: 1.5;
+  position: relative;
+  cursor: default;
+}
+.note-card.p-hoch { border-left-color: var(--accent); }
+.note-card.p-mittel { border-left-color: var(--gold); }
+.note-card.p-info { border-left-color: var(--green); }
+.note-card.p-allg { border-left-color: var(--accent2); }
+
+.note-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .65rem; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 4px;
+}
+.note-badge {
+  padding: 1px 5px; border-radius: 2px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .65rem; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.nb-hoch { background: #fee2e2; color: var(--accent); }
+.nb-mittel { background: #fef9c3; color: #8a6800; }
+.nb-info { background: #dcfce7; color: var(--green); }
+.nb-allg { background: #dbeafe; color: var(--accent2); }
+
+.note-del-btn {
+  position: absolute; top: 6px; right: 8px;
+  background: none; border: none;
+  color: var(--border); font-size: .85rem;
+  cursor: pointer; transition: color .15s;
+}
+.note-del-btn:hover { color: var(--accent); }
+
+.note-compose {
+  border-top: 2px solid var(--border);
+  padding: 10px;
+  background: var(--chrome2);
+  display: flex; flex-direction: column; gap: 6px;
+  flex-shrink: 0;
+}
+textarea.note-ta {
+  width: 100%; min-height: 60px; resize: none;
+  padding: 7px 10px;
+  background: white; border: 1px solid var(--border);
+  border-radius: 4px; outline: none;
+  font-family: 'Source Serif 4', serif;
+  font-size: .82rem; line-height: 1.5; color: var(--text);
+}
+textarea.note-ta:focus { border-color: var(--accent2); }
+.compose-row { display: flex; gap: 6px; align-items: center; }
+select.prio-sel {
+  flex: 1; padding: 6px 8px;
+  background: white; border: 1px solid var(--border);
+  border-radius: 4px; font-size: .8rem; color: var(--text);
+  cursor: pointer; outline: none;
+}
+.btn-note-add {
+  padding: 6px 16px;
+  background: var(--ink);
+  border: none; border-radius: 4px;
+  color: var(--chrome);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .9rem; font-weight: 700;
+  letter-spacing: .04em; cursor: pointer;
+}
+.btn-note-add:hover { background: var(--ink2); }
+
+/* ═══════════════════════════════════════════════
+   LEAFLET OVERRIDES
+═══════════════════════════════════════════════ */
+.leaflet-control-attribution { font-size: .6rem !important; }
+.leaflet-control-zoom a {
+  font-family: 'Rajdhani', sans-serif !important;
+  font-weight: 700 !important;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    PRAXISTRAINER
+    <span class="logo-sub">KFAz Potsdam</span>
+  </div>
+  <div class="header-pills">
+    <span class="pill live" id="pill-veh">0 Fz</span>
+    <span class="pill" id="pill-notes">0 Notizen</span>
+    <span class="pill" id="pill-coords">–</span>
+  </div>
+</header>
+
+<!-- PORTRAIT TABS -->
+<div class="tab-bar" id="tab-bar">
+  <button class="active" onclick="switchPortraitTab('map',this)">🗺 Karte</button>
+  <button onclick="switchPortraitTab('sidebar',this)">📋 Infos</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- MAP PANE -->
+  <div class="pane-map" id="pane-map">
+
+    <!-- Toolbar -->
+    <div class="map-toolbar" id="map-toolbar">
+      <span class="tb-label">Fz:</span>
+
+      <div class="veh-chip" onclick="startPlace('PKW')" title="PKW hinzufügen">
+        <div class="chip-dot" style="background:#2563eb"></div>PKW
+      </div>
+      <div class="veh-chip" onclick="startPlace('LKW')" title="LKW hinzufügen">
+        <div class="chip-dot" style="background:#dc2626"></div>LKW
+      </div>
+      <div class="veh-chip" onclick="startPlace('LKW-Zug')" title="LKW+Anhänger">
+        <div class="chip-dot" style="background:#ea580c"></div>Zug
+      </div>
+      <div class="veh-chip" onclick="startPlace('Krad')" title="Motorrad">
+        <div class="chip-dot" style="background:#ca8a04"></div>Krad
+      </div>
+      <div class="veh-chip" onclick="startPlace('Fahrrad')" title="Fahrrad">
+        <div class="chip-dot" style="background:#16a34a"></div>Rad
+      </div>
+      <div class="veh-chip" onclick="startPlace('Bus')" title="Bus">
+        <div class="chip-dot" style="background:#7c3aed"></div>Bus
+      </div>
+      <div class="veh-chip" onclick="startPlace('Fußg.')" title="Fußgänger">
+        <div class="chip-dot" style="background:#6b7280"></div>Fußg.
+      </div>
+
+      <div class="tb-sep"></div>
+      <span class="tb-label">VZ:</span>
+
+      <!-- Verkehrszeichen -->
+      <div class="sign-chip" onclick="startPlaceSign('205')" title="VZ 205 – Vorfahrt gewähren">
+        <svg viewBox="0 0 40 40"><?xml version="1.0"?>
+          <polygon points="20,4 36,34 4,34" fill="white" stroke="#c00" stroke-width="3"/>
+          <polygon points="20,12 30,30 10,30" fill="#c00"/>
+        </svg>
+      </div>
+      <div class="sign-chip" onclick="startPlaceSign('206')" title="VZ 206 – STOP">
+        <svg viewBox="0 0 40 40">
+          <polygon points="14,3 26,3 37,14 37,26 26,37 14,37 3,26 3,14" fill="#c00" stroke="white" stroke-width="2"/>
+          <text x="20" y="25" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="Rajdhani,sans-serif">STOP</text>
+        </svg>
+      </div>
+      <div class="sign-chip" onclick="startPlaceSign('301')" title="VZ 301 – Vorfahrt">
+        <svg viewBox="0 0 40 40">
+          <rect x="4" y="4" width="32" height="32" rx="2" fill="white" stroke="#999" stroke-width="1.5"/>
+          <polygon points="20,5 35,20 20,35 5,20" fill="#f5c842" stroke="white" stroke-width="2"/>
+          <polygon points="20,10 30,20 20,30 10,20" fill="white"/>
+        </svg>
+      </div>
+      <div class="sign-chip" onclick="startPlaceSign('306')" title="VZ 306 – Vorfahrtstraße">
+        <svg viewBox="0 0 40 40">
+          <polygon points="20,4 36,20 20,36 4,20" fill="#f5c842" stroke="white" stroke-width="2"/>
+          <polygon points="20,10 30,20 20,30 10,20" fill="white"/>
+        </svg>
+      </div>
+      <div class="sign-chip" onclick="startPlaceSign('101')" title="VZ 101 – Gefahrstelle">
+        <svg viewBox="0 0 40 40">
+          <polygon points="20,3 37,35 3,35" fill="white" stroke="#c00" stroke-width="3"/>
+          <text x="20" y="29" text-anchor="middle" font-size="16" font-weight="bold" fill="#c00" font-family="serif">!</text>
+        </svg>
+      </div>
+      <div class="sign-chip" onclick="startPlaceSign('209-10')" title="VZ 209 – Vorgeschriebene Fahrtrichtung rechts">
+        <svg viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="17" fill="#2563eb" stroke="white" stroke-width="2"/>
+          <path d="M14,20 L22,12 L22,17 L28,17 L28,23 L22,23 L22,28 Z" fill="white"/>
+        </svg>
+      </div>
+      <div class="sign-chip" onclick="startPlaceSign('215')" title="VZ 215 – Kreisverkehr">
+        <svg viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="17" fill="#2563eb" stroke="white" stroke-width="2"/>
+          <path d="M20,10 A10,10 0 1,1 10,20" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="20,7 15,13 25,13" fill="white"/>
+        </svg>
+      </div>
+      <div class="sign-chip" onclick="startPlaceSign('250')" title="VZ 250 – Verbot für Fahrzeuge">
+        <svg viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="17" fill="white" stroke="#c00" stroke-width="3"/>
+          <rect x="10" y="17" width="20" height="6" rx="1" fill="#c00"/>
+        </svg>
+      </div>
+
+      <div class="tb-sep"></div>
+      <div class="tb-btn danger" onclick="clearAll()">Leeren</div>
+
+      <div class="map-search-wrap">
+        <div class="autocomplete-wrap" id="autocomplete-wrap">
+          <input class="map-search-input" id="map-q"
+                 placeholder="Adresse / Kreuzung suchen…"
+                 autocomplete="off"
+                 oninput="onSearchInput()"
+                 onkeydown="onSearchKey(event)">
+          <div class="ac-spinner" id="ac-spinner"></div>
+          <ul class="ac-list" id="ac-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Coord bar -->
+    <div class="coord-bar">
+      <span class="coord-text">PIN: <span id="pin-coords">–</span></span>
+      <span class="coord-text">KARTE: <span id="map-center">–</span></span>
+      <button class="sv-btn" id="sv-quick-btn" onclick="openStreetView()" disabled>
+        📸 StreetView öffnen
+      </button>
+    </div>
+
+  </div><!-- /pane-map -->
+
+  <!-- SIDEBAR -->
+  <div class="pane-sidebar" id="pane-sidebar">
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" onclick="switchSidebarTab('sv',this)">📸 StreetView</button>
+      <button class="sidebar-tab" onclick="switchSidebarTab('notes',this)">📋 Notizen</button>
+    </div>
+
+    <!-- StreetView Panel -->
+    <div class="sidebar-panel active" id="sp-sv">
+      <div class="sv-panel">
+        <div class="sv-card">
+          <div class="sv-card-header">STANDORT – PIN</div>
+          <div class="sv-card-body">
+            <div class="sv-coords-display" id="sv-coords-display">Noch kein Pin gesetzt.<br>Klick auf die Karte → Pin setzen.</div>
+          </div>
+        </div>
+
+        <button class="sv-open-btn" id="sv-open-btn" onclick="openStreetView()" disabled>
+          📸 In Google StreetView öffnen →
+        </button>
+
+        <div class="sv-tip">
+          Pin auf Karte setzen → StreetView öffnet die Perspektive direkt an dieser Kreuzung in Google Maps (neuer Tab).
+        </div>
+
+        <div class="sv-card">
+          <div class="sv-card-header">BEDIENUNG</div>
+          <div class="sv-card-body">
+            <b>Fahrzeug/Zeichen:</b> Chip klicken → auf Karte platzieren<br>
+            <b>Verschieben:</b> Marker ziehen<br>
+            <b>Drehen:</b> ↻ beim Hover<br>
+            <b>Löschen:</b> ✕ beim Hover<br>
+            <b>LKW-Zug:</b> Zugmaschine ziehen → Anhänger folgt automatisch (Gelenkkinematik)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Panel -->
+    <div class="sidebar-panel" id="sp-notes">
+      <div class="notes-toolbar">
+        <button class="filter-btn active" onclick="filterNotes('alle',this)">Alle</button>
+        <button class="filter-btn" onclick="filterNotes('hoch',this)">⚠ Wichtig</button>
+        <button class="filter-btn" onclick="filterNotes('mittel',this)">● Mittel</button>
+        <button class="filter-btn" onclick="filterNotes('info',this)">✓ Info</button>
+        <button class="filter-btn" onclick="filterNotes('allg',this)">📌 Allg.</button>
+        <button class="filter-btn" onclick="exportNotes()" style="margin-left:auto">↓ Export</button>
+      </div>
+      <div class="note-list" id="note-list"></div>
+      <div class="note-compose">
+        <textarea class="note-ta" id="note-ta" placeholder="Notiz … (Strg+Enter zum Speichern)" rows="3"></textarea>
+        <div class="compose-row">
+          <select class="prio-sel" id="note-prio">
+            <option value="allg">📌 Allgemein</option>
+            <option value="info">✓ Info</option>
+            <option value="mittel">● Mittel</option>
+            <option value="hoch">⚠ Wichtig</option>
+          </select>
+          <button class="btn-note-add" onclick="addNote()">+ Notiz</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pane-sidebar -->
+
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// MAP INIT
+// ═══════════════════════════════════════════════════════════════════
+const map = L.map('map', {
+  center: [52.3906, 13.0645],
+  zoom: 17,
+  zoomControl: true,
+  attributionControl: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxZoom: 21
+}).addTo(map);
+
+// Update center display
+map.on('move', updateCenterDisplay);
+map.on('zoom', updateCenterDisplay);
+updateCenterDisplay();
+
+function updateCenterDisplay() {
+  const c = map.getCenter();
+  document.getElementById('map-center').textContent =
+    c.lat.toFixed(5) + ', ' + c.lng.toFixed(5);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PIN MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════
+let pinMarker = null;
+let pinLatLng = null;
+
+const pinIcon = L.divIcon({
+  html: `<svg width="24" height="36" viewBox="0 0 24 36">
+    <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#c8401a" stroke="white" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="5" fill="white"/>
+  </svg>`,
+  iconSize: [24, 36], iconAnchor: [12, 36],
+  className: ''
+});
+
+map.on('click', e => {
+  if (placeMode) { placeVehicleAtLatLng(e.latlng); return; }
+  if (signMode)  { placeSignAtLatLng(e.latlng); return; }
+  setPin(e.latlng);
+});
+
+function setPin(latlng) {
+  pinLatLng = latlng;
+  if (pinMarker) pinMarker.setLatLng(latlng);
+  else {
+    pinMarker = L.marker(latlng, { icon: pinIcon, draggable: true, zIndexOffset: 5000 }).addTo(map);
+    pinMarker.on('dragend', e => { pinLatLng = e.target.getLatLng(); updatePinDisplay(); });
+  }
+  updatePinDisplay();
+}
+
+function updatePinDisplay() {
+  if (!pinLatLng) return;
+  const txt = pinLatLng.lat.toFixed(5) + ',  ' + pinLatLng.lng.toFixed(5);
+  document.getElementById('pin-coords').textContent = txt;
+  document.getElementById('sv-coords-display').innerHTML =
+    `<b>Lat:</b> ${pinLatLng.lat.toFixed(6)}<br><b>Lng:</b> ${pinLatLng.lng.toFixed(6)}`;
+  document.getElementById('sv-open-btn').disabled = false;
+  document.getElementById('sv-quick-btn').disabled = false;
+  document.getElementById('pill-coords').textContent =
+    pinLatLng.lat.toFixed(3) + ',' + pinLatLng.lng.toFixed(3);
+}
+
+function openStreetView() {
+  if (!pinLatLng) return;
+  const url = `https://www.google.com/maps?layer=c&cbll=${pinLatLng.lat},${pinLatLng.lng}&cbp=12,0,0,0,0`;
+  window.open(url, '_blank');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PLACE MODE
+// ═══════════════════════════════════════════════════════════════════
+let placeMode = null; // type string
+let signMode  = null;
+
+function startPlace(type) {
+  placeMode = type;
+  signMode = null;
+  map.getContainer().style.cursor = 'crosshair';
+  showHint(`Klick auf Karte → ${type} platzieren`);
+}
+
+function startPlaceSign(code) {
+  signMode = code;
+  placeMode = null;
+  map.getContainer().style.cursor = 'crosshair';
+  showHint(`Klick auf Karte → VZ ${code} platzieren`);
+}
+
+function cancelPlaceMode() {
+  placeMode = null; signMode = null;
+  map.getContainer().style.cursor = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cancelPlaceMode(); });
+
+function showHint(msg) {
+  // brief toast
+  let t = document.getElementById('place-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'place-toast';
+    t.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+      background:rgba(26,28,30,.92);color:#f0ece4;padding:8px 18px;border-radius:4px;
+      font-family:Rajdhani,sans-serif;font-size:.85rem;font-weight:600;letter-spacing:.04em;
+      z-index:9999;pointer-events:none;transition:opacity .3s;`;
+    document.body.appendChild(t);
+  }
+  t.textContent = msg + '  (ESC abbrechen)';
+  t.style.opacity = '1';
+  clearTimeout(t._to);
+  t._to = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// VEHICLES
+// ═══════════════════════════════════════════════════════════════════
+const VEH_CFG = {
+  PKW:     { w: 20, h: 44, color: '#2563eb', label: 'PKW' },
+  LKW:     { w: 24, h: 68, color: '#dc2626', label: 'LKW' },
+  'LKW-Zug': { w: 24, h: 68, color: '#ea580c', label: 'Zug' },
+  Krad:    { w: 12, h: 34, color: '#ca8a04', label: 'Krad' },
+  Fahrrad: { w: 10, h: 28, color: '#16a34a', label: 'Rad' },
+  Bus:     { w: 26, h: 76, color: '#7c3aed', label: 'Bus' },
+  'Fußg.': { w: 16, h: 16, color: '#6b7280', label: 'Fußg.' },
+};
+
+let vehicles = [];
+let vehCounter = 0;
+
+function placeVehicleAtLatLng(latlng) {
+  const type = placeMode;
+  cancelPlaceMode();
+  createVehicle(type, latlng, 0);
+}
+
+function createVehicle(type, latlng, angle) {
+  const cfg = VEH_CFG[type];
+  const id = ++vehCounter;
+
+  if (type === 'LKW-Zug') {
+    createLKWZug(latlng, angle, id);
+    return;
+  }
+
+  const svgHtml = buildVehSVG(type, cfg.color, cfg.w, cfg.h);
+  const iconHtml = `
+    <div class="veh-marker" id="vm-${id}" data-angle="${angle}">
+      <div class="veh-controls">
+        <button class="veh-ctrl-btn btn-rot" onclick="rotVeh(${id})">↻</button>
+        <button class="veh-ctrl-btn btn-del" onclick="delVeh(${id})">✕</button>
+      </div>
+      ${svgHtml}
+      <div class="veh-label-tag">${cfg.label}</div>
+    </div>`;
+
+  const icon = L.divIcon({
+    html: iconHtml,
+    iconSize: [cfg.w + 20, cfg.h + 36],
+    iconAnchor: [(cfg.w + 20) / 2, (cfg.h + 36) / 2 + 9],
+    className: ''
+  });
+
+  const marker = L.marker(latlng, { icon, draggable: true, zIndexOffset: 1000 }).addTo(map);
+  vehicles.push({ id, type, marker, angle, trailer: null });
+  updateVehPill();
+}
+
+function createLKWZug(latlng, angle, id) {
+  const cfg = VEH_CFG['LKW'];
+  const tCfg = { w: 24, h: 60, color: '#ea580c' };
+
+  // Zugmaschine
+  const tractorSvg = buildVehSVG('LKW', cfg.color, cfg.w, cfg.h);
+  const tractorHtml = `
+    <div class="veh-marker" id="vm-${id}" data-angle="${angle}">
+      <div class="veh-controls">
+        <button class="veh-ctrl-btn btn-rot" onclick="rotVeh(${id})">↻</button>
+        <button class="veh-ctrl-btn btn-del" onclick="delVeh(${id})">✕</button>
+      </div>
+      ${tractorSvg}
+      <div class="veh-label-tag">Zug (ZM)</div>
+    </div>`;
+
+  const tractorIcon = L.divIcon({
+    html: tractorHtml,
+    iconSize: [cfg.w + 20, cfg.h + 36],
+    iconAnchor: [(cfg.w + 20) / 2, (cfg.h + 36) / 2 + 9],
+    className: ''
+  });
+
+  const tractorMarker = L.marker(latlng, { icon: tractorIcon, draggable: true, zIndexOffset: 1000 }).addTo(map);
+
+  // Anhänger – initial versetzt hinter Zugmaschine
+  const trailerOffset = calcTrailerPos(latlng, angle, 0.00012);
+  const trailerSvg = buildTrailerSVG(tCfg.color, tCfg.w, tCfg.h);
+  const trailerId = id * 1000 + 1;
+  const trailerHtml = `
+    <div class="veh-marker" id="vm-${trailerId}" data-angle="${angle}">
+      ${trailerSvg}
+      <div class="veh-label-tag">Anhänger</div>
+    </div>`;
+  const trailerIcon = L.divIcon({
+    html: trailerHtml,
+    iconSize: [tCfg.w + 16, tCfg.h + 24],
+    iconAnchor: [(tCfg.w + 16) / 2, (tCfg.h + 24) / 2 + 6],
+    className: ''
+  });
+  const trailerMarker = L.marker(trailerOffset, { icon: trailerIcon, draggable: false, zIndexOffset: 999 }).addTo(map);
+
+  // Gelenklinie
+  const jointLine = L.polyline([latlng, trailerOffset], {
+    color: '#ea580c', weight: 3, opacity: .7, dashArray: '4,4',
+    className: 'trailer-line'
+  }).addTo(map);
+
+  const vehData = { id, type: 'LKW-Zug', marker: tractorMarker, angle,
+    trailer: { marker: trailerMarker, line: jointLine, angle, prevLatLng: latlng } };
+  vehicles.push(vehData);
+
+  // Drag handler – Anhänger folgt mit Kinematik
+  tractorMarker.on('drag', e => {
+    const newPos = e.target.getLatLng();
+    updateTrailerKinematics(vehData, newPos);
+  });
+
+  updateVehPill();
+}
+
+function calcTrailerPos(tractorLatLng, angleDeg, distDeg) {
+  const rad = (angleDeg + 180) * Math.PI / 180;
+  return L.latLng(
+    tractorLatLng.lat + Math.cos(rad) * distDeg,
+    tractorLatLng.lng + Math.sin(rad) * distDeg * 1.5
+  );
+}
+
+function updateTrailerKinematics(vehData, newTractorPos) {
+  const t = vehData.trailer;
+  const prevPos = t.prevLatLng;
+
+  // Direction vector from previous to current tractor position
+  const dLat = newTractorPos.lat - prevPos.lat;
+  const dLng = newTractorPos.lng - prevPos.lng;
+  const tractorAngle = Math.atan2(dLng, dLat) * 180 / Math.PI;
+
+  // Trailer follows with lag – articulation angle capped at 45°
+  const articulationFactor = 0.6;
+  const trailerAngle = t.angle + (tractorAngle - t.angle) * articulationFactor;
+
+  // Position trailer behind coupling point
+  const couplingDist = 0.00010;
+  const trailerRad = (trailerAngle + 180) * Math.PI / 180;
+  const newTrailerPos = L.latLng(
+    newTractorPos.lat + Math.cos(trailerRad) * couplingDist,
+    newTractorPos.lng + Math.sin(trailerRad) * couplingDist * 1.5
+  );
+
+  t.marker.setLatLng(newTrailerPos);
+  t.line.setLatLngs([newTractorPos, newTrailerPos]);
+  t.angle = trailerAngle;
+  t.prevLatLng = newTractorPos;
+
+  // Update trailer SVG rotation
+  const trailerEl = t.marker.getElement();
+  if (trailerEl) {
+    const inner = trailerEl.querySelector('.veh-marker');
+    if (inner) inner.style.transform = `rotate(${trailerAngle}deg)`;
+  }
+
+  // Update tractor angle display
+  if (Math.abs(dLat) + Math.abs(dLng) > 0.000001) {
+    vehData.angle = tractorAngle;
+    const el = vehData.marker.getElement();
+    if (el) {
+      const inner = el.querySelector('.veh-marker');
+      if (inner) inner.style.transform = `rotate(${tractorAngle}deg)`;
+    }
+  }
+}
+
+function rotVeh(id) {
+  const v = vehicles.find(x => x.id === id);
+  if (!v) return;
+  v.angle = (v.angle + 45) % 360;
+  const el = v.marker.getElement();
+  if (el) {
+    const inner = el.querySelector('.veh-marker');
+    if (inner) {
+      inner.dataset.angle = v.angle;
+      inner.style.transform = `rotate(${v.angle}deg)`;
+    }
+  }
+}
+
+function delVeh(id) {
+  const idx = vehicles.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  const v = vehicles[idx];
+  map.removeLayer(v.marker);
+  if (v.trailer) {
+    map.removeLayer(v.trailer.marker);
+    map.removeLayer(v.trailer.line);
+  }
+  vehicles.splice(idx, 1);
+  updateVehPill();
+}
+
+function clearAll() {
+  vehicles.forEach(v => {
+    map.removeLayer(v.marker);
+    if (v.trailer) { map.removeLayer(v.trailer.marker); map.removeLayer(v.trailer.line); }
+  });
+  vehicles = [];
+  signs.forEach(s => map.removeLayer(s.marker));
+  signs = [];
+  updateVehPill();
+}
+
+function updateVehPill() {
+  document.getElementById('pill-veh').textContent = vehicles.length + ' Fz';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SVG BUILDERS
+// ═══════════════════════════════════════════════════════════════════
+function buildVehSVG(type, color, w, h) {
+  switch(type) {
+    case 'PKW': return `<svg width="${w}" height="${h}" viewBox="0 0 20 44" style="display:block">
+      <rect x="2" y="8" width="16" height="28" rx="4" fill="${color}"/>
+      <rect x="3" y="10" width="14" height="11" rx="2" fill="rgba(0,0,0,.3)"/>
+      <rect x="1" y="10" width="3" height="8" rx="1.5" fill="#111"/>
+      <rect x="16" y="10" width="3" height="8" rx="1.5" fill="#111"/>
+      <rect x="1" y="28" width="3" height="6" rx="1.5" fill="#111"/>
+      <rect x="16" y="28" width="3" height="6" rx="1.5" fill="#111"/>
+      <rect x="4" y="3" width="12" height="6" rx="2" fill="rgba(255,255,200,.85)"/>
+      <rect x="4" y="38" width="12" height="4" rx="1.5" fill="rgba(220,50,50,.85)"/>
+    </svg>`;
+
+    case 'LKW': return `<svg width="${w}" height="${h}" viewBox="0 0 24 68" style="display:block">
+      <rect x="2" y="18" width="20" height="46" rx="2" fill="${color}" opacity=".85"/>
+      <rect x="2" y="5" width="20" height="16" rx="3" fill="${color}"/>
+      <rect x="4" y="7" width="16" height="9" rx="2" fill="rgba(0,0,0,.3)"/>
+      <rect x="0" y="8" width="3" height="8" rx="1.5" fill="#111"/>
+      <rect x="21" y="8" width="3" height="8" rx="1.5" fill="#111"/>
+      <rect x="0" y="52" width="4" height="9" rx="2" fill="#111"/>
+      <rect x="20" y="52" width="4" height="9" rx="2" fill="#111"/>
+      <rect x="4" y="1" width="16" height="5" rx="2" fill="rgba(255,255,200,.85)"/>
+      <rect x="4" y="63" width="16" height="4" rx="2" fill="rgba(220,50,50,.85)"/>
+    </svg>`;
+
+    case 'Krad': return `<svg width="${w}" height="${h}" viewBox="0 0 12 34" style="display:block">
+      <rect x="3" y="5" width="6" height="24" rx="3" fill="${color}"/>
+      <ellipse cx="6" cy="5" rx="4" ry="4" fill="${color}"/>
+      <rect x="2" y="2" width="8" height="4" rx="2" fill="rgba(255,255,200,.85)"/>
+      <rect x="2" y="30" width="8" height="3" rx="1.5" fill="rgba(220,50,50,.85)"/>
+      <rect x="0" y="9" width="3" height="14" rx="1.5" fill="#222"/>
+      <rect x="9" y="9" width="3" height="14" rx="1.5" fill="#222"/>
+    </svg>`;
+
+    case 'Fahrrad': return `<svg width="${w}" height="${h}" viewBox="0 0 10 28" style="display:block">
+      <rect x="3" y="4" width="4" height="20" rx="2" fill="${color}"/>
+      <circle cx="5" cy="4" r="3" fill="${color}"/>
+      <rect x="2" y="2" width="6" height="3" rx="1.5" fill="rgba(255,255,200,.7)"/>
+    </svg>`;
+
+    case 'Bus': return `<svg width="${w}" height="${h}" viewBox="0 0 26 76" style="display:block">
+      <rect x="1" y="5" width="24" height="66" rx="4" fill="${color}" opacity=".85"/>
+      <rect x="3" y="9" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/>
+      <rect x="14" y="9" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/>
+      <rect x="3" y="22" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/>
+      <rect x="14" y="22" width="9" height="9" rx="1.5" fill="rgba(0,0,0,.3)"/>
+      <rect x="3" y="35" width="20" height="14" rx="1.5" fill="rgba(0,0,0,.2)"/>
+      <rect x="3" y="2" width="20" height="5" rx="2" fill="rgba(255,255,200,.85)"/>
+      <rect x="3" y="71" width="20" height="4" rx="2" fill="rgba(220,50,50,.85)"/>
+      <rect x="1" y="56" width="5" height="12" rx="2" fill="#111"/>
+      <rect x="20" y="56" width="5" height="12" rx="2" fill="#111"/>
+    </svg>`;
+
+    case 'Fußg.': return `<svg width="${w}" height="${h}" viewBox="0 0 16 16" style="display:block">
+      <circle cx="8" cy="5" r="4" fill="${color}"/>
+      <path d="M2 16 Q8 9 14 16" fill="${color}"/>
+    </svg>`;
+  }
+  return '';
+}
+
+function buildTrailerSVG(color, w, h) {
+  return `<svg width="${w}" height="${h}" viewBox="0 0 24 60" style="display:block">
+    <rect x="2" y="2" width="20" height="52" rx="2" fill="${color}" opacity=".75"/>
+    <rect x="4" y="5" width="16" height="8" rx="1" fill="rgba(255,255,255,.15)"/>
+    <rect x="4" y="17" width="16" height="8" rx="1" fill="rgba(255,255,255,.15)"/>
+    <rect x="4" y="29" width="16" height="8" rx="1" fill="rgba(255,255,255,.15)"/>
+    <rect x="0" y="42" width="5" height="9" rx="2" fill="#111"/>
+    <rect x="19" y="42" width="5" height="9" rx="2" fill="#111"/>
+    <rect x="4" y="54" width="16" height="4" rx="2" fill="rgba(220,50,50,.85)"/>
+    <circle cx="12" cy="2" r="3" fill="#888" stroke="#555" stroke-width="1"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SIGNS
+// ═══════════════════════════════════════════════════════════════════
+let signs = [];
+let signCounter = 0;
+
+const SIGN_SVGS = {
+  '205': `<svg width="38" height="38" viewBox="0 0 40 40"><polygon points="20,4 36,34 4,34" fill="white" stroke="#c00" stroke-width="3.5"/><polygon points="20,13 30,30 10,30" fill="#c00"/></svg>`,
+  '206': `<svg width="38" height="38" viewBox="0 0 40 40"><polygon points="14,3 26,3 37,14 37,26 26,37 14,37 3,26 3,14" fill="#c00" stroke="white" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="Rajdhani,sans-serif">STOP</text></svg>`,
+  '301': `<svg width="38" height="38" viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="2" fill="white" stroke="#ccc" stroke-width="1.5"/><polygon points="20,5 35,20 20,35 5,20" fill="#f5c842" stroke="white" stroke-width="2"/><polygon points="20,11 29,20 20,29 11,20" fill="white"/></svg>`,
+  '306': `<svg width="38" height="38" viewBox="0 0 40 40"><polygon points="20,3 37,20 20,37 3,20" fill="#f5c842" stroke="white" stroke-width="2.5"/><polygon points="20,10 30,20 20,30 10,20" fill="white"/></svg>`,
+  '101': `<svg width="38" height="38" viewBox="0 0 40 40"><polygon points="20,3 37,35 3,35" fill="white" stroke="#c00" stroke-width="3.5"/><text x="20" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="#c00" font-family="serif">!</text></svg>`,
+  '209-10': `<svg width="38" height="38" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#2563eb" stroke="white" stroke-width="2"/><path d="M13,20 L21,11 L21,16 L28,16 L28,24 L21,24 L21,29 Z" fill="white"/></svg>`,
+  '215': `<svg width="38" height="38" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#2563eb" stroke="white" stroke-width="2"/><path d="M20,9 A11,11 0 1,1 9,20" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"/><polygon points="20,6 14,13 26,13" fill="white"/></svg>`,
+  '250': `<svg width="38" height="38" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="white" stroke="#c00" stroke-width="3.5"/><rect x="9" y="17" width="22" height="6" rx="1.5" fill="#c00"/></svg>`,
+};
+
+function placeSignAtLatLng(latlng) {
+  const code = signMode;
+  cancelPlaceMode();
+  const sid = ++signCounter;
+  const svgHtml = SIGN_SVGS[code] || '';
+
+  const html = `<div class="sign-marker" id="sm-${sid}">
+    ${svgHtml}
+    <button class="sign-del-btn" onclick="delSign(${sid})">✕</button>
+  </div>`;
+
+  const icon = L.divIcon({
+    html, iconSize: [42, 48], iconAnchor: [21, 42], className: ''
+  });
+
+  const marker = L.marker(latlng, { icon, draggable: true, zIndexOffset: 2000 }).addTo(map);
+  signs.push({ id: sid, code, marker });
+}
+
+function delSign(id) {
+  const idx = signs.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  map.removeLayer(signs[idx].marker);
+  signs.splice(idx, 1);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AUTOCOMPLETE SEARCH (Nominatim)
+// ═══════════════════════════════════════════════════════════════════
+let acDebounce = null;
+let acResults  = [];
+let acSelected = -1;
+
+function onSearchInput() {
+  const q = document.getElementById('map-q').value.trim();
+  clearTimeout(acDebounce);
+  acSelected = -1;
+  if (q.length < 3) { closeAcList(); return; }
+  acDebounce = setTimeout(() => fetchSuggestions(q), 320);
+}
+
+function onSearchKey(e) {
+  const list = document.getElementById('ac-list');
+  if (!list.classList.contains('open')) {
+    if (e.key === 'Enter') { fetchSuggestions(document.getElementById('map-q').value.trim(), true); }
+    return;
+  }
+  const items = list.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acSelected = Math.min(acSelected + 1, items.length - 1);
+    highlightAcItem(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acSelected = Math.max(acSelected - 1, -1);
+    highlightAcItem(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acSelected >= 0 && acResults[acSelected]) selectResult(acResults[acSelected]);
+    else if (acResults[0]) selectResult(acResults[0]);
+  } else if (e.key === 'Escape') {
+    closeAcList();
+  }
+}
+
+function highlightAcItem(items) {
+  items.forEach((el, i) => el.classList.toggle('selected', i === acSelected));
+  if (acSelected >= 0) items[acSelected].scrollIntoView({ block: 'nearest' });
+}
+
+async function fetchSuggestions(q, immediate = false) {
+  const spinner = document.getElementById('ac-spinner');
+  spinner.classList.add('active');
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=7&addressdetails=1&accept-language=de&countrycodes=de,at,ch`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'PraxistrainerKFAz/2.0' } });
+    const data = await res.json();
+    acResults = data;
+    if (immediate && data.length === 1) { selectResult(data[0]); return; }
+    renderAcList(data);
+  } catch {
+    showHint('Suche fehlgeschlagen');
+  } finally {
+    spinner.classList.remove('active');
+  }
+}
+
+// Type → icon mapping
+const TYPE_ICONS = {
+  road: '🛣', residential: '🏘', highway: '🛣', street: '🛣',
+  intersection: '✚', crossing: '✚',
+  city: '🏙', town: '🏙', village: '🏘', suburb: '🏘',
+  restaurant: '🍽', cafe: '☕', default: '📍'
+};
+function iconFor(r) {
+  const t = (r.type || '') + (r.class || '');
+  if (t.includes('road') || t.includes('street') || t.includes('highway')) return '🛣';
+  if (t.includes('city') || t.includes('town')) return '🏙';
+  if (t.includes('village') || t.includes('suburb')) return '🏘';
+  return '📍';
+}
+
+function renderAcList(results) {
+  const list = document.getElementById('ac-list');
+  if (!results.length) {
+    list.innerHTML = `<li class="ac-item" style="color:var(--muted);cursor:default">Keine Ergebnisse</li>`;
+    list.classList.add('open');
+    return;
+  }
+  list.innerHTML = results.map((r, i) => {
+    const addr = r.address || {};
+    const main = addr.road || addr.pedestrian || addr.suburb || addr.city || addr.town || r.display_name.split(',')[0];
+    const parts = [addr.house_number, addr.postcode, addr.city || addr.town || addr.village, addr.country].filter(Boolean);
+    const sub = parts.join(' · ');
+    return `<li class="ac-item" data-idx="${i}" onclick="selectResult(acResults[${i}])">
+      <span class="ac-item-icon">${iconFor(r)}</span>
+      <div>
+        <div class="ac-item-main">${escHtml(main)}</div>
+        ${sub ? `<div class="ac-item-sub">${escHtml(sub)}</div>` : ''}
+      </div>
+    </li>`;
+  }).join('');
+  list.classList.add('open');
+  acSelected = -1;
+}
+
+function selectResult(r) {
+  const ll = L.latLng(parseFloat(r.lat), parseFloat(r.lon));
+  document.getElementById('map-q').value = r.display_name.split(',').slice(0,2).join(', ');
+  closeAcList();
+  // Zoom level depends on type
+  const zoom = (r.type === 'road' || r.class === 'highway') ? 17 : 16;
+  map.setView(ll, zoom);
+  // No automatic pin – user sets it manually
+  showHint('Pin manuell durch Klick auf die Kreuzung setzen');
+}
+
+function closeAcList() {
+  document.getElementById('ac-list').classList.remove('open');
+  acResults = []; acSelected = -1;
+}
+
+// Close on outside click
+document.addEventListener('click', e => {
+  if (!document.getElementById('autocomplete-wrap').contains(e.target)) closeAcList();
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// SIDEBAR TABS
+// ═══════════════════════════════════════════════════════════════════
+function switchSidebarTab(tab, btn) {
+  document.querySelectorAll('.sidebar-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('sp-' + tab).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PORTRAIT TAB
+// ═══════════════════════════════════════════════════════════════════
+function switchPortraitTab(tab, btn) {
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const mapPane  = document.getElementById('pane-map');
+  const sidePane = document.getElementById('pane-sidebar');
+  if (tab === 'map') {
+    mapPane.classList.remove('tab-hidden');
+    sidePane.classList.add('tab-hidden');
+    setTimeout(() => map.invalidateSize(), 50);
+  } else {
+    mapPane.classList.add('tab-hidden');
+    sidePane.classList.remove('tab-hidden');
+  }
+}
+
+window.addEventListener('resize', () => {
+  if (window.matchMedia('(orientation: landscape)').matches) {
+    document.getElementById('pane-map').classList.remove('tab-hidden');
+    document.getElementById('pane-sidebar').classList.remove('tab-hidden');
+  }
+  setTimeout(() => map.invalidateSize(), 100);
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// NOTES
+// ═══════════════════════════════════════════════════════════════════
+let notes = JSON.parse(localStorage.getItem('pt2-notes') || '[]');
+let noteId = notes.length ? Math.max(...notes.map(n => n.id)) + 1 : 1;
+let noteFilter = 'alle';
+
+const PRIO_LABELS = { hoch: '⚠ Wichtig', mittel: '● Mittel', info: '✓ Info', allg: '📌 Allg.' };
+const PRIO_CLS    = { hoch: 'nb-hoch', mittel: 'nb-mittel', info: 'nb-info', allg: 'nb-allg' };
+const CARD_CLS    = { hoch: 'p-hoch', mittel: 'p-mittel', info: 'p-info', allg: 'p-allg' };
+
+function saveNotes() {
+  localStorage.setItem('pt2-notes', JSON.stringify(notes));
+  document.getElementById('pill-notes').textContent = notes.length + ' Notizen';
+}
+
+function addNote() {
+  const text = document.getElementById('note-ta').value.trim();
+  if (!text) return;
+  const prio = document.getElementById('note-prio').value;
+  const now = new Date();
+  const ts = now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
+    + ' · ' + now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+  notes.unshift({ id: noteId++, text, prio, ts });
+  document.getElementById('note-ta').value = '';
+  saveNotes(); renderNotes();
+}
+
+function deleteNote(id) {
+  notes = notes.filter(n => n.id !== id);
+  saveNotes(); renderNotes();
+}
+
+function filterNotes(f, btn) {
+  noteFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNotes();
+}
+
+function renderNotes() {
+  const list = document.getElementById('note-list');
+  const shown = noteFilter === 'alle' ? notes : notes.filter(n => n.prio === noteFilter);
+  if (!shown.length) {
+    list.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:24px 0">
+      Keine Notizen${noteFilter !== 'alle' ? ' in dieser Kategorie' : ''}</div>`;
+    return;
+  }
+  list.innerHTML = shown.map(n => `
+    <div class="note-card ${CARD_CLS[n.prio]}">
+      <div class="note-meta">
+        <span class="note-badge ${PRIO_CLS[n.prio]}">${PRIO_LABELS[n.prio]}</span>
+        <span>${n.ts}</span>
+      </div>
+      <div>${escHtml(n.text)}</div>
+      <button class="note-del-btn" onclick="deleteNote(${n.id})">✕</button>
+    </div>`).join('');
+}
+
+function exportNotes() {
+  const lines = notes.map(n => `[${PRIO_LABELS[n.prio]}] ${n.ts}\n${n.text}\n`).join('\n');
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([lines], { type: 'text/plain' })),
+    download: `Notizen_Praxistrainer_${new Date().toLocaleDateString('de-DE').replace(/\./g,'-')}.txt`
+  });
+  a.click();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function exportNotes() {
+  const lines = notes.map(n => `[${PRIO_LABELS[n.prio]}] ${n.ts}\n${n.text}\n`).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lines],{type:'text/plain'}));
+  a.download = `Notizen_PT_${new Date().toLocaleDateString('de-DE').replace(/\./g,'-')}.txt`;
+  a.click();
+}
+
+document.getElementById('note-ta').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) addNote();
+});
+
+// INIT
+saveNotes();
+renderNotes();
+setTimeout(() => map.invalidateSize(), 200);
+</script>
+</body>
+</html>
