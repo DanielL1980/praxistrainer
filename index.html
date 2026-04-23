@@ -394,6 +394,7 @@ map.on('click',e=>{
   if(placeMode){placeVeh(e.latlng);return;}
   if(signMode){placeSign(e.latlng);return;}
   if(drawMode){return;}
+  if(e.originalEvent._fromMarker){return;} // block click-through from marker
   setPin(e.latlng);
 });
 
@@ -471,6 +472,57 @@ function placeVeh(ll){
   createVeh(type,ll,0);
 }
 
+// ── Pointer-event based marker drag (works on tablet + stylus) ──
+function makeMarkerDraggable(marker, el){
+  let dragging=false, startX, startY, startLL;
+
+  el.addEventListener('pointerdown', e=>{
+    // Ignore taps on control buttons
+    if(e.target.closest('.vm-ctrl')) return;
+    e.stopPropagation();
+    e.preventDefault();
+    dragging=true;
+    startX=e.clientX; startY=e.clientY;
+    startLL=marker.getLatLng();
+    el.setPointerCapture(e.pointerId);
+    el.style.cursor='grabbing';
+    // Mark event so map click handler ignores it
+    el._pointerMoved=false;
+  },{passive:false});
+
+  el.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    e.stopPropagation();
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    if(Math.abs(dx)+Math.abs(dy)>4) el._pointerMoved=true;
+    // Convert pixel delta to latlng delta
+    const startPt=map.latLngToContainerPoint(startLL);
+    const newPt=L.point(startPt.x+dx, startPt.y+dy);
+    const newLL=map.containerPointToLatLng(newPt);
+    marker.setLatLng(newLL);
+    // Update trailer if this is a Zug
+    const vData=vehs.find(v=>v.marker===marker);
+    if(vData?.trailer) updateTrailer(vData,newLL);
+  },{passive:true});
+
+  el.addEventListener('pointerup', e=>{
+    if(!dragging) return;
+    dragging=false;
+    el.style.cursor='grab';
+    if(!el._pointerMoved){
+      // It was a tap not a drag – let map click fire normally... but we
+      // need to block the pin-set. We signal via originalEvent flag.
+    }
+  });
+
+  el.addEventListener('click', e=>{
+    if(el._pointerMoved){
+      e.stopPropagation(); // was a drag, not a tap – block map click
+    }
+    el._pointerMoved=false;
+  },{capture:true});
+}
+
 function createVeh(type,ll,angle){
   const cfg=VCFG[type]||VCFG.PKW;
   const id=++vId;
@@ -488,12 +540,15 @@ function createVeh(type,ll,angle){
   </div>`;
 
   const icon=L.divIcon({html,iconSize:[iW,iH],iconAnchor:[iW/2,iH/2-9],className:''});
-  const marker=L.marker(ll,{icon,draggable:true,zIndexOffset:1000}).addTo(map);
+  const marker=L.marker(ll,{icon,draggable:false,zIndexOffset:1000}).addTo(map);
 
-  // Apply initial rotation to inner div after mount
   marker.on('add',()=>{
     const el=marker.getElement();
-    if(el){const vm=el.querySelector('.vm');if(vm) vm.style.transform=`rotate(${angle}deg)`;}
+    if(el){
+      const vm=el.querySelector('.vm');
+      if(vm) vm.style.transform=`rotate(${angle}deg)`;
+      makeMarkerDraggable(marker,el);
+    }
   });
 
   vehs.push({id,type,marker,angle,trailer:null,path:[]});
@@ -515,7 +570,8 @@ function createZug(ll,angle){
     <div class="vm-lbl">Zug (ZM)</div>
   </div>`;
   const tIcon=L.divIcon({html:tractorHtml,iconSize:[iW,iH],iconAnchor:[iW/2,iH/2-9],className:''});
-  const tMarker=L.marker(ll,{icon:tIcon,draggable:true,zIndexOffset:1000}).addTo(map);
+  const tMarker=L.marker(ll,{icon:tIcon,draggable:false,zIndexOffset:1000}).addTo(map);
+  tMarker.on('add',()=>{const el=tMarker.getElement();if(el)makeMarkerDraggable(tMarker,el);});
 
   const trOff=calcTrailerPos(ll,angle,0.00011);
   const trId=id*1000+1;
@@ -660,11 +716,33 @@ function selectForDrive(id){
 
 function startDriveAnimation(){
   if(!driveVeh||drawnLatLngs.length<2){endDraw(false);return;}
+
+  // Show preview: keep path visible, show "Starten" button
+  if(livePolyline) livePolyline.setStyle({color:'#f59e0b',opacity:.85,dashArray:'none',weight:4});
+  setModeBar('FAHRWEG BEREIT – Fahrt starten oder neu zeichnen');
+  document.getElementById('mode-bar').innerHTML=`
+    <span class="mode-txt" id="mode-txt">✓ FAHRWEG BEREIT</span>
+    <button class="mode-cancel" style="background:#16a34a;border-color:#16a34a;color:white" onclick="confirmDrive()">▶ Fahrt starten</button>
+    <button class="mode-cancel" onclick="redrawPath()">↺ Neu zeichnen</button>
+    <button class="mode-cancel" onclick="endDraw(false)">✕ Abbrechen</button>`;
+  document.getElementById('mode-bar').classList.add('on');
+  map.dragging.enable();
+  map.touchZoom.enable();
+}
+
+function redrawPath(){
+  if(livePolyline){map.removeLayer(livePolyline);livePolyline=null;}
+  drawnLatLngs=[];
+  if(driveVeh) selectForDrive(driveVeh.id);
+}
+
+function confirmDrive(){
+  if(!driveVeh||drawnLatLngs.length<2){endDraw(false);return;}
   const v=driveVeh;
   const pts=drawnLatLngs.slice();
-  if(livePolyline) livePolyline.setStyle({color:'#f59e0b',opacity:.45,dashArray:'6,4',weight:2});
   if(v.pathLine) map.removeLayer(v.pathLine);
   v.pathLine=livePolyline;
+  if(livePolyline) livePolyline.setStyle({color:'#f59e0b',opacity:.4,dashArray:'6,4',weight:2.5});
   livePolyline=null;
   endDraw(true);
 
