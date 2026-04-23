@@ -1,4 +1,4 @@
-name: Deploy Praxistrainer to Firebase Hosting
+name: Deploy to Firebase Hosting
 on:
   push:
     branches: [main]
