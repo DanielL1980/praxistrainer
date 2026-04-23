@@ -43,9 +43,11 @@ header{flex-shrink:0;height:50px;background:var(--ink);display:flex;align-items:
 /* SIDEBAR */
 .pane-side{flex:0 0 36%;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--pa)}
 
-/* PORTRAIT OVERRIDES - after base rules so they win */
 @media(orientation:portrait){
   .ptabs{display:flex}
+
+/* PORTRAIT OVERRIDES - after base rules so they win */
+
   .main{position:relative}
   .pane-map,.pane-side{position:absolute;inset:0;border-right:none}
   .gone{display:none!important}
@@ -386,7 +388,7 @@ function updatePinUI(){
 function openSV(){if(pinLL)window.open(`https://www.google.com/maps?layer=c&cbll=${pinLL.lat},${pinLL.lng}`,'_blank');}
 
 // ═══════════════════════ MODE ═══════════════════════
-let placeMode=null,signMode=null,drawMode=false;
+let placeMode=null,signMode=null;
 
 function setMode(txt,btns){
   const bar=document.getElementById('modebar');
