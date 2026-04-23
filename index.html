@@ -78,11 +78,8 @@ header{height:50px;background:var(--ink);display:flex;align-items:center;padding
 .mbtn.go:hover{background:#15803d}
 
 /* MAP */
-#map{flex:1;z-index:1;cursor:default}
+#map{flex:1;min-height:200px;z-index:1;cursor:default}
 
-/* DRAW OVERLAY - SVG over the map container */
-#draw-svg{position:absolute;inset:0;pointer-events:none;z-index:500;overflow:visible}
-#draw-svg.active{pointer-events:all;cursor:crosshair}
 
 /* COORD BAR */
 .cbar{height:24px;background:var(--ink2);border-top:1px solid var(--ink3);display:flex;align-items:center;padding:0 9px;gap:10px;flex-shrink:0}
@@ -263,8 +260,6 @@ select.nprio{flex:1;padding:5px 6px;background:white;border:1px solid var(--bo);
 
   <div id="map"></div>
 
-  <!-- SVG DRAW OVERLAY - lives inside pane-map, positioned over map -->
-  <svg id="draw-svg" xmlns="http://www.w3.org/2000/svg"></svg>
 
   <!-- VEHICLE SELECT PANEL for drive -->
   <div class="dv-panel" id="dv-panel">
@@ -963,7 +958,10 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 // INIT
 saveN();renderN();
-setTimeout(()=>map.invalidateSize(),200);
+// Force map to render correctly after all DOM is settled
+setTimeout(()=>map.invalidateSize(),100);
+setTimeout(()=>map.invalidateSize(),500);
+window.addEventListener('load',()=>map.invalidateSize());
 </script>
 </body>
 </html>
