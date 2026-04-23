@@ -80,7 +80,7 @@ header{height:var(--hdr);background:var(--ink);display:flex;align-items:center;j
 .mode-cancel{margin-left:auto;padding:2px 9px;background:none;border:1px solid rgba(245,158,11,.5);border-radius:2px;color:#f59e0b;font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer}
 
 #map{flex:1;z-index:1}
-#path-canvas{position:absolute;inset:0;pointer-events:none;z-index:400;top:var(--hdr)}
+
 
 .coord-bar{height:24px;background:var(--ink2);border-top:1px solid var(--ink3);display:flex;align-items:center;padding:0 10px;gap:12px;flex-shrink:0}
 .coord-txt{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:#4a5370;letter-spacing:.04em}
@@ -288,7 +288,6 @@ select.nprio{flex:1;padding:5px 7px;background:white;border:1px solid var(--bord
     </div>
 
     <div id="map"></div>
-    <canvas id="path-canvas"></canvas>
 
     <div class="coord-bar">
       <span class="coord-txt">PIN: <span id="pin-disp">–</span></span>
@@ -592,138 +591,113 @@ function updateVehPill(){
 }
 
 // ═══════════════════════════════════════════════════════
-// PATH DRAW & DRIVE ANIMATION
+// PATH DRAW & DRIVE ANIMATION (Leaflet-native, tablet-safe)
 // ═══════════════════════════════════════════════════════
 let driveVeh=null;
-let drawnPoints=[];
-let drawingLine=null;
+let drawnLatLngs=[];
+let livePolyline=null;
 
-const pathCanvas=document.getElementById('path-canvas');
-const pCtx=pathCanvas.getContext('2d');
-
-function resizePathCanvas(){
-  const mapEl=document.getElementById('map');
-  pathCanvas.width=mapEl.offsetWidth;
-  pathCanvas.height=mapEl.offsetHeight;
-  pathCanvas.style.top='0';
-  pathCanvas.style.left='0';
-}
-new ResizeObserver(resizePathCanvas).observe(document.getElementById('map'));
-setTimeout(resizePathCanvas,100);
+// Dedicated pane for drawing path
+map.createPane('drawPane');
+map.getPane('drawPane').style.zIndex=450;
+map.getPane('drawPane').style.pointerEvents='none';
 
 function selectForDrive(id){
   const v=vehs.find(x=>x.id===id); if(!v) return;
   if(drawMode) endDraw(false);
   driveVeh=v;
   drawMode=true;
-  drawnPoints=[];
-  pathCanvas.classList.add('drawing');
-  setModeBar('FAHRWEG ZEICHNEN – Finger/Stift auf Karte ziehen, loslassen = Fahrt startet');
-  map.dragging.disable();
-  clearCanvas();
+  drawnLatLngs=[];
 
-  // Touch & mouse draw on canvas
-  function getXY(e){
-    const r=pathCanvas.getBoundingClientRect();
+  livePolyline=L.polyline([],{
+    color:'#f59e0b',weight:4,opacity:.9,
+    dashArray:'8,5',lineCap:'round',lineJoin:'round',
+    pane:'drawPane'
+  }).addTo(map);
+
+  setModeBar('FAHRWEG ZEICHNEN – Finger/Stift auf Karte ziehen → loslassen = Fahrt startet');
+  map.dragging.disable();
+  map.touchZoom.disable();
+
+  const mc=map.getContainer();
+
+  function getLL(e){
     const src=e.touches?e.touches[0]:e;
-    return {x:src.clientX-r.left,y:src.clientY-r.top};
+    const r=mc.getBoundingClientRect();
+    return map.containerPointToLatLng(L.point(src.clientX-r.left,src.clientY-r.top));
   }
   function onStart(e){
-    e.preventDefault();
-    drawnPoints=[];
-    const {x,y}=getXY(e);
-    drawnPoints.push({x,y});
-    clearCanvas();
-    pCtx.beginPath();
-    pCtx.moveTo(x,y);
+    e.preventDefault();e.stopPropagation();
+    drawnLatLngs=[];
+    const ll=getLL(e);
+    drawnLatLngs.push(ll);
+    livePolyline.setLatLngs([ll]);
   }
   function onMove(e){
-    e.preventDefault();
-    if(!drawnPoints.length) return;
-    const {x,y}=getXY(e);
-    drawnPoints.push({x,y});
-    pCtx.lineTo(x,y);
-    pCtx.strokeStyle='rgba(245,158,11,0.85)';
-    pCtx.lineWidth=3;
-    pCtx.lineCap='round';
-    pCtx.lineJoin='round';
-    pCtx.stroke();
+    e.preventDefault();e.stopPropagation();
+    if(!drawnLatLngs.length) return;
+    drawnLatLngs.push(getLL(e));
+    livePolyline.setLatLngs(drawnLatLngs);
   }
   function onEnd(e){
-    e.preventDefault();
-    pathCanvas.removeEventListener('mousedown',onStart);
-    pathCanvas.removeEventListener('mousemove',onMove);
-    pathCanvas.removeEventListener('mouseup',onEnd);
-    pathCanvas.removeEventListener('touchstart',onStart);
-    pathCanvas.removeEventListener('touchmove',onMove);
-    pathCanvas.removeEventListener('touchend',onEnd);
-    if(drawnPoints.length>3) startDriveAnimation();
+    e.preventDefault();e.stopPropagation();
+    mc.removeEventListener('mousedown',onStart,true);
+    mc.removeEventListener('mousemove',onMove,true);
+    mc.removeEventListener('mouseup',onEnd,true);
+    mc.removeEventListener('touchstart',onStart,true);
+    mc.removeEventListener('touchmove',onMove,true);
+    mc.removeEventListener('touchend',onEnd,true);
+    if(drawnLatLngs.length>3) startDriveAnimation();
     else endDraw(false);
   }
-  pathCanvas.addEventListener('mousedown',onStart);
-  pathCanvas.addEventListener('mousemove',onMove);
-  pathCanvas.addEventListener('mouseup',onEnd);
-  pathCanvas.addEventListener('touchstart',onStart,{passive:false});
-  pathCanvas.addEventListener('touchmove',onMove,{passive:false});
-  pathCanvas.addEventListener('touchend',onEnd,{passive:false});
-}
-
-function clearCanvas(){
-  pCtx.clearRect(0,0,pathCanvas.width,pathCanvas.height);
+  mc.addEventListener('mousedown',onStart,{capture:true});
+  mc.addEventListener('mousemove',onMove,{capture:true});
+  mc.addEventListener('mouseup',onEnd,{capture:true});
+  mc.addEventListener('touchstart',onStart,{capture:true,passive:false});
+  mc.addEventListener('touchmove',onMove,{capture:true,passive:false});
+  mc.addEventListener('touchend',onEnd,{capture:true,passive:false});
 }
 
 function startDriveAnimation(){
-  if(!driveVeh||drawnPoints.length<2){endDraw(false);return;}
+  if(!driveVeh||drawnLatLngs.length<2){endDraw(false);return;}
+  const v=driveVeh;
+  const pts=drawnLatLngs.slice();
+  if(livePolyline) livePolyline.setStyle({color:'#f59e0b',opacity:.45,dashArray:'6,4',weight:2});
+  if(v.pathLine) map.removeLayer(v.pathLine);
+  v.pathLine=livePolyline;
+  livePolyline=null;
   endDraw(true);
 
-  // Convert canvas pixels to LatLng
-  const llPoints=drawnPoints.map(p=>{
-    return map.containerPointToLatLng(L.point(p.x,p.y));
-  });
-
-  // Show path on map
-  if(driveVeh.pathLine) map.removeLayer(driveVeh.pathLine);
-  driveVeh.pathLine=L.polyline(llPoints,{color:'#f59e0b',weight:2.5,opacity:.7,dashArray:'6,4'}).addTo(map);
-
-  const v=driveVeh;
   let idx=0;
-  const total=llPoints.length;
-  const speed=12; // points per frame step
+  const total=pts.length;
+  const stepSize=Math.max(1,Math.floor(total/100));
+  const vmEl=v.marker.getElement()?.querySelector('.vm');
+  if(vmEl) vmEl.classList.add('driving');
 
-  function step(){
-    if(idx>=total-1){
-      v.marker.getElement()?.querySelector('.vm')?.classList.remove('driving');
-      return;
-    }
-    const next=llPoints[Math.min(idx+speed,total-1)];
+  function animate(){
+    if(idx>=total-1){if(vmEl)vmEl.classList.remove('driving');return;}
+    const next=pts[Math.min(idx+stepSize,total-1)];
     const cur=v.marker.getLatLng();
-    const dLat=next.lat-cur.lat, dLng=next.lng-cur.lng;
-    const angle=Math.atan2(dLng,dLat)*180/Math.PI;
-
+    const angle=Math.atan2(next.lng-cur.lng,next.lat-cur.lat)*180/Math.PI;
     v.marker.setLatLng(next);
     v.angle=angle;
     const el=v.marker.getElement();
-    if(el){const vm=el.querySelector('.vm');if(vm) vm.style.transform=`rotate(${angle}deg)`;}
-
+    if(el){const vm=el.querySelector('.vm');if(vm)vm.style.transform=`rotate(${angle}deg)`;}
     if(v.trailer) updateTrailer(v,next);
-
-    idx=Math.min(idx+speed,total-1);
-    requestAnimationFrame(step);
+    idx=Math.min(idx+stepSize,total-1);
+    requestAnimationFrame(animate);
   }
-
-  const vmEl=v.marker.getElement()?.querySelector('.vm');
-  if(vmEl) vmEl.classList.add('driving');
-  requestAnimationFrame(step);
+  requestAnimationFrame(animate);
 }
 
-function endDraw(keepCanvas){
+function endDraw(keepPath){
   drawMode=false;
-  pathCanvas.classList.remove('drawing');
   map.dragging.enable();
+  map.touchZoom.enable();
   setModeBar(null);
-  if(!keepCanvas) clearCanvas();
+  if(!keepPath&&livePolyline){map.removeLayer(livePolyline);livePolyline=null;}
   driveVeh=null;
-  drawnPoints=[];
+  drawnLatLngs=[];
 }
 
 // ═══════════════════════════════════════════════════════
