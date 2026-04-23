@@ -363,9 +363,10 @@ let pinLL=null, pinMk=null;
 const pinIcon=L.divIcon({html:`<svg width="20" height="32" viewBox="0 0 20 32"><path d="M10 0C4.5 0 0 4.5 0 10c0 7.5 10 22 10 22S20 17.5 20 10C20 4.5 15.5 0 10 0z" fill="#c8401a" stroke="white" stroke-width="1.5"/><circle cx="10" cy="10" r="4" fill="white"/></svg>`,iconSize:[20,32],iconAnchor:[10,32],className:''});
 
 map.on('click',e=>{
-  if(placeMode||signMode||drawMode)return;
-  // block if we just finished a marker drag
   if(e.originalEvent._noPin)return;
+  if(drawMode)return;
+  if(placeMode){createVeh(placeMode,e.latlng,0);clearMode();return;}
+  if(signMode){createSign(signMode,e.latlng);clearMode();return;}
   setPin(e.latlng);
 });
 
@@ -429,11 +430,6 @@ const VCFG={
   Fuss: {w:14,h:14,color:'#6b7280',label:'Fußg.'},
 };
 
-map.on('click',e=>{
-  if(e.originalEvent._noPin)return;
-  if(placeMode){createVeh(placeMode,e.latlng,0);clearMode();return;}
-  if(signMode){createSign(signMode,e.latlng);clearMode();return;}
-});
 
 function createVeh(type,ll,angle){
   if(type==='Zug'){createZug(ll,angle);return;}
